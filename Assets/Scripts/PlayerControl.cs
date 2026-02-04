@@ -6,7 +6,6 @@ public class PlayerControl : MonoBehaviour
 {
     public float player_x = 0;
     public float player_y = 0;
-    public float player_z = 0;
     public int state = 0;
 
     // Start is called before the first frame update
@@ -14,7 +13,6 @@ public class PlayerControl : MonoBehaviour
     {
         player_x = 0;
         player_y = 0;
-        player_z = 0;
         state = 0;
 
     }
