@@ -308,12 +308,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 549924949}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 38e97b22d4b931a43b204b269625133c, type: 3}
+  m_Script: {fileID: 11500000, guid: c7590baf40f156348bee09187f10120b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridManager: {fileID: 1502273235}
-  gridPosition: {x: 1, y: 0}
+  gridManager: {fileID: 0}
+  gridPosition: {x: 0, y: 0}
   snapToGridEachFrame: 1
+  moveCooldown: 0.2
 --- !u!1 &1502273234
 GameObject:
   m_ObjectHideFlags: 0

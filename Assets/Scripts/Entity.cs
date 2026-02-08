@@ -10,6 +10,7 @@ public class Entity : MonoBehaviour
     [SerializeField] private bool snapToGridEachFrame = true;
 
     public Vector2Int GridPosition => gridPosition;
+    protected GridManager GridManager => gridManager;
 
     private void Awake()
     {
@@ -130,5 +131,10 @@ public class Entity : MonoBehaviour
 
         transform.SetParent(gridManager.transform, true);
         transform.localPosition = gridManager.GridToWorld(gridPosition);
+    }
+
+    // 被攻击时的默认响应（子类可重写）
+    public virtual void Onhit(Vector2Int attackDirection)
+    {
     }
 }
