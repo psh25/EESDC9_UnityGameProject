@@ -13,8 +13,8 @@ public class GridManager : MonoBehaviour
 
     // 记录有效位置集合
     private readonly HashSet<Vector2Int> validPositions = new HashSet<Vector2Int>();
-    // 记录每个格子上的当前物体（未来可替换为 Entity 基类）
-    private readonly Dictionary<Vector2Int, GameObject> occupants = new Dictionary<Vector2Int, GameObject>();
+    // 记录每个格子上的当前实体
+    private readonly Dictionary<Vector2Int, Entity> occupants = new Dictionary<Vector2Int, Entity>();
 
     private void Awake()
     {
@@ -79,27 +79,27 @@ public class GridManager : MonoBehaviour
     }
 
     // 获取指定坐标上的物体
-    public GameObject GetOccupant(Vector2Int gridPos)
+    public Entity GetOccupant(Vector2Int gridPos)
     {
-        occupants.TryGetValue(gridPos, out GameObject obj);
-        return obj;
+        occupants.TryGetValue(gridPos, out Entity entity);
+        return entity;
     }
 
     // 设置指定坐标上的物体
-    public void SetOccupant(Vector2Int gridPos, GameObject obj)
+    public void SetOccupant(Vector2Int gridPos, Entity entity)
     {
         if (!IsValidPosition(gridPos))
         {
             return;
         }
 
-        if (obj == null)
+        if (entity == null)
         {
             occupants.Remove(gridPos);
             return;
         }
 
-        occupants[gridPos] = obj;
+        occupants[gridPos] = entity;
     }
 
     // 清空指定坐标上的物体
