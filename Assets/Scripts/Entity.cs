@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 
 public class Entity : MonoBehaviour
@@ -10,15 +9,8 @@ public class Entity : MonoBehaviour
     [SerializeField] private Vector2Int gridPosition;
     [SerializeField] private bool snapToGridEachFrame = true;
 
-    [Header("Movement")]
-    [SerializeField] private bool useSmoothMove = false;
-    [SerializeField] private float moveDuration = 0.15f;
-
     public Vector2Int GridPosition => gridPosition;
     protected GridManager GridManager => gridManager;
-
-    private Coroutine smoothMoveRoutine;
-    private bool isMoving;
 
     private void Awake()
     {
@@ -30,13 +22,22 @@ public class Entity : MonoBehaviour
 
     private void Start()
     {
+        //吸附到最近的可用位置
+        if (gridManager != null && gridManager.TryFindNearestAvailablePosition(transform.position, out Vector2Int nearestPosition))
+        {
+            gridPosition = nearestPosition;
+            gridManager.SetOccupant(gridPosition, this);
+            SyncWorldPosition();
+            return;
+        }
+
         RegisterAtCurrentPosition();
         SyncWorldPosition();
     }
 
     private void LateUpdate()
     {
-        if (snapToGridEachFrame && !isMoving)
+        if (snapToGridEachFrame)
         {
             SyncWorldPosition();
         }
@@ -74,11 +75,6 @@ public class Entity : MonoBehaviour
             return false;
         }
 
-        if (isMoving)
-        {
-            return false;
-        }
-
         Vector2Int targetPos = gridPosition + direction;
         if (!gridManager.IsValidPosition(targetPos))
         {
@@ -90,7 +86,10 @@ public class Entity : MonoBehaviour
             return false;
         }
 
-        ApplyMoveToGridPosition(targetPos);
+        gridManager.ClearOccupant(gridPosition);
+        gridPosition = targetPos;
+        gridManager.SetOccupant(gridPosition, this);
+        SyncWorldPosition();
         return true;
     }
 
@@ -109,7 +108,10 @@ public class Entity : MonoBehaviour
             return;
         }
 
-        ApplyMoveToGridPosition(newPosition);
+        gridManager.ClearOccupant(gridPosition);
+        gridPosition = newPosition;
+        gridManager.SetOccupant(gridPosition, this);
+        SyncWorldPosition();
     }
 
     // 注册实体到当前坐标
@@ -140,59 +142,7 @@ public class Entity : MonoBehaviour
         transform.localPosition = gridManager.GridToWorld(gridPosition);
     }
 
-    private void ApplyMoveToGridPosition(Vector2Int targetPos)
-    {
-        gridManager.ClearOccupant(gridPosition);
-        gridPosition = targetPos;
-        gridManager.SetOccupant(gridPosition, this);
-
-        if (useSmoothMove && moveDuration > 0f)
-        {
-            StartSmoothMove();
-        }
-        else
-        {
-            SyncWorldPosition();
-        }
-    }
-
-    private void StartSmoothMove()
-    {
-        if (gridManager == null)
-        {
-            return;
-        }
-
-        if (smoothMoveRoutine != null)
-        {
-            StopCoroutine(smoothMoveRoutine);
-        }
-
-        smoothMoveRoutine = StartCoroutine(SmoothMoveRoutine(gridManager.GridToWorld(gridPosition), moveDuration));
-    }
-
-    private IEnumerator SmoothMoveRoutine(Vector3 targetLocalPosition, float duration)
-    {
-        isMoving = true;
-        transform.SetParent(gridManager.transform, true);
-
-        Vector3 startLocalPosition = transform.localPosition;
-        float elapsed = 0f;
-
-        while (elapsed < duration)
-        {
-            elapsed += Time.deltaTime;
-            float t = Mathf.Clamp01(elapsed / duration);
-            transform.localPosition = Vector3.Lerp(startLocalPosition, targetLocalPosition, t);
-            yield return null;
-        }
-
-        transform.localPosition = targetLocalPosition;
-        isMoving = false;
-        smoothMoveRoutine = null;
-    }
-
-    // 被攻击时的默认响应（子类可重写）
+    // 被攻击时的默认响应（子类中可重写）
     public virtual void Onhit(Vector2Int attackDirection)
     {
     }
