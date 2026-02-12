@@ -3,46 +3,79 @@ using UnityEngine;
 public class Player : Entity
 {
     [Header("Move Settings")]
-    [SerializeField] private float moveCooldown = 0.2f;
+    [SerializeField] public float actCooldown = 0.2f;
 
     private float nextMoveTime;
 
+    private Animator animator;
+
+    //有限状态机
+    public enum PlayerState: int 
+    {
+         Idle, //0
+         Moving, //1
+         Attacking, //2
+         Dead //3
+    }
+    private PlayerState currentState = PlayerState.Idle;
+    
+
+    // 获取Animator组件
+    private void Start()
+    {
+        animator = GetComponent<Animator>();
+    }
+
+    // 处理输入和行动
     private void Update()
     {
-        if (Time.time < nextMoveTime)
-        {
-            return;
-        }
-
-        if (!TryGetInputDirection(out Vector2Int direction))
-        {
-            return;
-        }
-
         if (GridManager == null)
         {
             return;
         }
 
+        // 根据当前状态设置动画参数
+        animator.SetInteger("playerState", (int)currentState);
+        
+        //冷却中无法行动
+        if (Time.time < nextMoveTime)
+        {
+            return;
+        }
+        //默认状态为Idle
+        currentState = PlayerState.Idle;
+
+        // 获取输入
+        if (!TryGetInputDirection(out Vector2Int direction))
+        {
+            return;
+        }
+        
+
         Vector2Int targetPos = GridPosition + direction;
+        //目标格子无效则不行动
         if (!GridManager.IsValidPosition(targetPos))
         {
             return;
         }
 
         Entity target = GridManager.GetOccupant(targetPos);
+        // 目标格子有实体则攻击
         if (target != null)
         {
-            // 目标格子有实体则攻击
             target.Onhit(direction);
-            nextMoveTime = Time.time + moveCooldown;
+            currentState = PlayerState.Attacking;
+            nextMoveTime = Time.time + actCooldown;
             return;
         }
 
+        //否则尝试移动，成功则开始冷却
         if (TryMove(direction))
         {
-            nextMoveTime = Time.time + moveCooldown;
+            currentState = PlayerState.Moving;
+            nextMoveTime = Time.time + actCooldown;
         }
+
     }
 
     // 获取输入方向（WASD 与方向键）
@@ -52,7 +85,7 @@ public class Player : Entity
 
         if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
         {
-            direction = Vector2Int.up;
+            direction = Vector2Int.up; 
             return true;
         }
 
@@ -65,15 +98,18 @@ public class Player : Entity
         if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
         {
             direction = Vector2Int.left;
+            transform.localScale = new Vector3(-1, 1, 1);
             return true;
         }
 
         if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
         {
             direction = Vector2Int.right;
+            transform.localScale = new Vector3(1, 1, 1);
             return true;
         }
 
         return false;
     }
+
 }
