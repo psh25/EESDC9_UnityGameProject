@@ -1,0 +1,48 @@
+[33mcommit 10e533f4f08f62fdf92d4492a80429f03d848c5e[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: Johnson-K423 <yct25@mails.tsinghua.edu.cn>
+Date:   Fri Feb 6 22:10:12 2026 +0800
+
+    测试提交
+
+[33mcommit c0d07f8bbf28eb03b45b2717e9004f740adf3ccd[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Merge: 6157c21 471693e
+Author: psh25 <psh25@mails.tsinghua.edu.cn>
+Date:   Thu Feb 5 23:31:34 2026 +0800
+
+    merge branch 'dev0'
+
+[33mcommit 471693e10f4ac73e4d59ffa8b2358fad188201c7[m[33m ([m[1;31morigin/dev0[m[33m)[m
+Author: psh25 <psh25@mails.tsinghua.edu.cn>
+Date:   Thu Feb 5 23:15:56 2026 +0800
+
+    rename scene & try branch
+
+[33mcommit 6157c21285829555ba92be0a7a1c40ad03c43451[m
+Author: psh25 <psh25@mails.tsinghua.edu.cn>
+Date:   Wed Feb 4 20:50:07 2026 +0800
+
+    adjust sorting order
+
+[33mcommit 7d3fb7199cf81c6c97f28b015df7ca8cc2de270b[m
+Author: psh25 <psh25@mails.tsinghua.edu.cn>
+Date:   Wed Feb 4 20:12:03 2026 +0800
+
+    add grid and player movement
+
+[33mcommit 790303cc1e2bd2a8f10653d57f7e56bbe6272cab[m
+Author: psh25 <psh25@mails.tsinghua.edu.cn>
+Date:   Mon Feb 2 21:32:13 2026 +0800
+
+    fix compile error
+
+[33mcommit 1ddc65263c1c00de6e46710bac3301fa54415d6f[m
+Author: psh25 <psh25@mails.tsinghua.edu.cn>
+Date:   Mon Feb 2 21:09:32 2026 +0800
+
+    try commit again
+
+[33mcommit 96c4af3e6c6055ec67869949fa08c1627155ad0e[m
+Author: psh25 <psh25@mails.tsinghua.edu.cn>
+Date:   Mon Feb 2 11:59:28 2026 +0800
+
+    initial commit: Unity project setup
