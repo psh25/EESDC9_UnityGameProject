@@ -147,6 +147,7 @@ public class GridManager : MonoBehaviour
         return found;
     }
 
+    // 在Scene视图中绘制有效位置
     private void OnDrawGizmos()
     {
         if (!showSpawnPoints || width <= 0 || height <= 0 || cellSize <= 0f)

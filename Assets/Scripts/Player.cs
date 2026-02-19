@@ -51,8 +51,8 @@ public class Player : Entity
             return;
         }
         
-
         Vector2Int targetPos = GridPosition + direction;
+
         //目标格子无效则不行动
         if (!GridManager.IsValidPosition(targetPos))
         {
@@ -60,6 +60,7 @@ public class Player : Entity
         }
 
         Entity target = GridManager.GetOccupant(targetPos);
+        
         // 目标格子有实体则攻击
         if (target != null)
         {
