@@ -4,33 +4,20 @@ using UnityEngine;
 
 public class RemoteEnemy : Enemy
 {
-    [Header("Action Settings")]
-    [SerializeField] private float actionCooldown = 1f;  // ĞĞ¶¯¼ä¸ô£¨Ãë£©
-    private float nextActionTime;
-
-    private int turnCounter = 0;               // 0:Ì§ÊÖ»ØºÏ, 1:ĞĞ¶¯»ØºÏ
+    private int turnCounter = 0;               // 0:æŠ¬æ‰‹å›åˆ, 1:è¡ŒåŠ¨å›åˆ
     private Vector2Int? pendingDirection = null;
 
-    private void Update()
-    {
-        if (Time.time < nextActionTime)
-            return;
-
-        PerformAction();
-        nextActionTime = Time.time + actionCooldown;
-    }
-
-    private void PerformAction()
+    public override void PerformAction()
     {
         if (GridManager == null)
             return;
 
-        if (turnCounter == 0)  //Ì§ÊÖ»ØºÏ
+        if (turnCounter == 0)  //æŠ¬æ‰‹å›åˆ
         {
             ChooseDirection();
             turnCounter = 1;
         }
-        else  //ĞĞ¶¯»ØºÏ
+        else  //è¡ŒåŠ¨å›åˆ
         {
             if (pendingDirection.HasValue)
             {
@@ -40,18 +27,18 @@ public class RemoteEnemy : Enemy
                     Entity occupant = GridManager.GetOccupant(currentHit);
                     if (occupant is Player player)
                     {
-                        //Todo:Ôì³ÉÉËº¦
-                        Debug.Log("Ô¶³ÌµĞÈË¹¥»÷Íæ¼Ò");
+                        //Todo:é€ æˆä¼¤å®³
+                        Debug.Log("è¿œç¨‹æ•Œäººæ”»å‡»ç©å®¶");
                         break;
                     }
                     else if (occupant != null)
                     {
-                        // Óöµ½ÆäËûÊµÌå£¨ÈçÇ½£©£¬Í£Ö¹¹¥»÷
-                        Debug.Log("Ô¶³ÌµĞÈË¹¥»÷±»×èµ²");
+                        // é‡åˆ°å…¶ä»–å®ä½“ï¼ˆå¦‚å¢™ï¼‰ï¼Œåœæ­¢æ”»å‡»
+                        Debug.Log("è¿œç¨‹æ•Œäººæ”»å‡»è¢«é˜»æŒ¡");
                         break;
                     }
-                    currentHit += pendingDirection.Value;  // ¼ÌĞøÏòÇ°¼ì²é
-                    Debug.Log("µ±Ç°¼¤¹âÎ»ÖÃ£º" + currentHit);
+                    currentHit += pendingDirection.Value;  // ç»§ç»­å‘å‰æ£€æŸ¥
+                    Debug.Log("å½“å‰æ¿€å…‰ä½ç½®ï¼š" + currentHit);
                 }
                 turnCounter = 0;
             }
@@ -61,24 +48,24 @@ public class RemoteEnemy : Enemy
     private void ChooseDirection()
     {
         Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
-        System.Collections.Generic.List<Vector2Int> validDirs = new System.Collections.Generic.List<Vector2Int>();  // ´æ´¢ÓĞĞ§·½Ïò
+        System.Collections.Generic.List<Vector2Int> validDirs = new System.Collections.Generic.List<Vector2Int>();  // å­˜å‚¨æœ‰æ•ˆæ–¹å‘
 
         foreach (Vector2Int dir in directions)
         {
             Vector2Int neighbor = GridPosition + dir;
-            if (GridManager.IsValidPosition(neighbor) && (GridManager.GetOccupant(neighbor) == null || GridManager.GetOccupant(neighbor) is Player))  // Ö»ÓĞ¿Õ¸ñ»òÍæ¼Ò²ÅËãÓĞĞ§·½Ïò
+            if (GridManager.IsValidPosition(neighbor) && (GridManager.GetOccupant(neighbor) == null || GridManager.GetOccupant(neighbor) is Player))  // åªæœ‰ç©ºæ ¼æˆ–ç©å®¶æ‰ç®—æœ‰æ•ˆæ–¹å‘
                 validDirs.Add(dir);
         }
 
         if (validDirs.Count > 0)
         {
-            pendingDirection = validDirs[Random.Range(0, validDirs.Count)];  // ´ÓÓĞĞ§·½ÏòÖĞËæ»úÑ¡ÔñÒ»¸ö
-            Debug.Log("Ì§ÊÖ·½Ïò£º" + pendingDirection);
+            pendingDirection = validDirs[Random.Range(0, validDirs.Count)];  // ä»æœ‰æ•ˆæ–¹å‘ä¸­éšæœºé€‰æ‹©ä¸€ä¸ª
+            Debug.Log("æŠ¬æ‰‹æ–¹å‘ï¼š" + pendingDirection);
         }
         else
         {
-            pendingDirection = null;  // Ã»ÓĞÓĞĞ§·½Ïò£¬Ô¶³ÌµĞÈË½«²»»á¹¥»÷
-            Debug.Log("Ô¶³ÌµĞÈËÃ»ÓĞÓĞĞ§·½Ïò¿ÉÌ§ÊÖ");
+            pendingDirection = null;  // æ²¡æœ‰æœ‰æ•ˆæ–¹å‘ï¼Œè¿œç¨‹æ•Œäººå°†ä¸ä¼šæ”»å‡»
+            Debug.Log("è¿œç¨‹æ•Œäººæ²¡æœ‰æœ‰æ•ˆæ–¹å‘å¯æŠ¬æ‰‹");
         }
     }
 }

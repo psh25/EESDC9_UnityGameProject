@@ -1,8 +1,35 @@
+using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
 
 public class Enemy : Entity
 {
     public int health = 1;
+
+
+        private void OnEnable()
+        {
+            // 订阅节拍事件
+            BeatManager.OnBeat += OnBeatTriggered;
+        }
+
+        private void OnDisable()
+        {
+            // 取消订阅，防止内存泄漏或错误调用
+            BeatManager.OnBeat -= OnBeatTriggered;
+        }
+
+        private void OnBeatTriggered()
+        {
+            // 这个方法在每个节拍被调用
+            // 在这里执行敌人的行动逻辑（例如之前的 PerformTurn 或 PerformAction）
+            PerformAction(); // 假设你有一个执行行动的方法
+        }
+        public virtual void PerformAction()
+        {
+            // 这里放置敌人每个节拍要执行的逻辑
+            // 例如，随机选择一个方向移动，或者攻击玩家等
+            Debug.Log("敌人在节拍时执行行动");
+        }
 
     // 被攻击时的响应
     public override void Onhit(Vector2Int attackDirection)

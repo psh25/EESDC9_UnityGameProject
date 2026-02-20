@@ -4,33 +4,20 @@ using UnityEngine;
 
 public class MeleeEnemy : Enemy
 {
-    [Header("Action Settings")]
-    [SerializeField] private float actionCooldown = 1f;  // ĞĞ¶¯¼ä¸ô£¨Ãë£©
-    private float nextActionTime;
-
-    private int turnCounter = 0;               // 0:Ì§ÊÖ»ØºÏ, 1:ĞĞ¶¯»ØºÏ
+    private int turnCounter = 0;               // 0:æŠ¬æ‰‹å›åˆ, 1:è¡ŒåŠ¨å›åˆ
     private Vector2Int? pendingDirection = null;
 
-    private void Update()
-    {
-        if (Time.time < nextActionTime)
-            return;
-
-        PerformAction();
-        nextActionTime = Time.time + actionCooldown;
-    }
-
-    private void PerformAction()
+    public override void PerformAction()
     {
         if (GridManager == null)
             return;
 
         if (turnCounter == 0)
         {
-            ChooseDirection();  //Ì§ÊÖ½×¶Î
+            ChooseDirection();  //æŠ¬æ‰‹é˜¶æ®µ
             turnCounter = 1;
         }
-        else  //ĞĞ¶¯½×¶Î
+        else  //è¡ŒåŠ¨é˜¶æ®µ
         {
             if (pendingDirection.HasValue)
             {
@@ -46,17 +33,17 @@ public class MeleeEnemy : Enemy
                 Entity occupant = GridManager.GetOccupant(targetPos);
                 if (occupant is Player player)
                 {
-                    //Todo:Ôì³ÉÉËº¦
-                    Debug.Log("½üÕ½µĞÈË¹¥»÷ÁËÍæ¼Ò");
+                    //Todo:é€ æˆä¼¤å®³
+                    Debug.Log("è¿‘æˆ˜æ•Œäººæ”»å‡»äº†ç©å®¶");
                 }
-                else if (occupant == null)  // Ã»ÓĞÕÏ°­£¬¿ÉÒÔÒÆ¶¯
+                else if (occupant == null)  // æ²¡æœ‰éšœç¢ï¼Œå¯ä»¥ç§»åŠ¨
                 {
                     TryMove(pendingDirection.Value);
                 }
                 else
                 {
-                    // Ç°·½ÓĞÕÏ°­£¬¿ÉÄÜÊ²Ã´¶¼²»×ö
-                    Debug.Log("½üÕ½µĞÈË±»×èµ²");
+                    // å‰æ–¹æœ‰éšœç¢ï¼Œå¯èƒ½ä»€ä¹ˆéƒ½ä¸åš
+                    Debug.Log("è¿‘æˆ˜æ•Œäººè¢«é˜»æŒ¡");
                 }
 
                 pendingDirection = null;
@@ -65,27 +52,27 @@ public class MeleeEnemy : Enemy
         }
     }
 
-    private void ChooseDirection()  //Ñ¡Ôñ·½Ïò
+    private void ChooseDirection()  //é€‰æ‹©æ–¹å‘
     {
         Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
-        System.Collections.Generic.List<Vector2Int> validDirs = new System.Collections.Generic.List<Vector2Int>();  //´æ´¢ÓĞĞ§·½Ïò
+        System.Collections.Generic.List<Vector2Int> validDirs = new System.Collections.Generic.List<Vector2Int>();  //å­˜å‚¨æœ‰æ•ˆæ–¹å‘
 
         foreach (Vector2Int dir in directions)
         {
-            Vector2Int neighbor = GridPosition + dir;  //¼ÆËãÁÚ¾ÓÎ»ÖÃ
-            if (GridManager.IsValidPosition(neighbor) && (GridManager.GetOccupant(neighbor) == null||GridManager.GetOccupant(neighbor) is Player))  // Ö»ÓĞ¿Õ¸ñ»òÍæ¼Ò²ÅËãÓĞĞ§·½Ïò
-                validDirs.Add(dir);  //½«ÓĞĞ§·½ÏòÌí¼Óµ½ÁĞ±í
+            Vector2Int neighbor = GridPosition + dir;  //è®¡ç®—é‚»å±…ä½ç½®
+            if (GridManager.IsValidPosition(neighbor) && (GridManager.GetOccupant(neighbor) == null||GridManager.GetOccupant(neighbor) is Player))  // åªæœ‰ç©ºæ ¼æˆ–ç©å®¶æ‰ç®—æœ‰æ•ˆæ–¹å‘
+                validDirs.Add(dir);  //å°†æœ‰æ•ˆæ–¹å‘æ·»åŠ åˆ°åˆ—è¡¨
         }
 
         if (validDirs.Count > 0)
         {
-            pendingDirection = validDirs[Random.Range(0, validDirs.Count)];  //Ëæ»úÑ¡ÔñÒ»¸öÓĞĞ§·½Ïò
-            Debug.Log("Ì§ÊÖ·½Ïò£º" + pendingDirection);
+            pendingDirection = validDirs[Random.Range(0, validDirs.Count)];  //éšæœºé€‰æ‹©ä¸€ä¸ªæœ‰æ•ˆæ–¹å‘
+            Debug.Log("æŠ¬æ‰‹æ–¹å‘ï¼š" + pendingDirection);
         }
         else
         {
-            pendingDirection = null;  //Ã»ÓĞÓĞĞ§·½Ïò£¬±£³ÖÔ­µØ²»¶¯
-             Debug.Log("Ã»ÓĞÓĞĞ§·½Ïò£¬½üÕ½µĞÈË±£³ÖÔ­µØ");
+            pendingDirection = null;  //æ²¡æœ‰æœ‰æ•ˆæ–¹å‘ï¼Œä¿æŒåŸåœ°ä¸åŠ¨
+             Debug.Log("æ²¡æœ‰æœ‰æ•ˆæ–¹å‘ï¼Œè¿‘æˆ˜æ•Œäººä¿æŒåŸåœ°");
         }
     }
 }
