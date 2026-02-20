@@ -214,6 +214,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &912161462 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8892154417841259905, guid: 93e71aa6249672a41b24e431a7bb2f97, type: 3}
+  m_PrefabInstance: {fileID: 1639243269}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &912161466
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 912161462}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9cb24bb42f44e1e48a9047645c94de21, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gridManager: {fileID: 0}
+  gridPosition: {x: 2, y: 4}
+  snapToGridEachFrame: 1
+  actionCooldown: 1
 --- !u!1001 &1127087781
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -382,7 +403,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8892154417841259905, guid: 93e71aa6249672a41b24e431a7bb2f97, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 912161466}
   m_SourcePrefab: {fileID: 100100000, guid: 93e71aa6249672a41b24e431a7bb2f97, type: 3}
 --- !u!1 &1957111052
 GameObject:
@@ -623,8 +647,32 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8892154417841259905, guid: 93e71aa6249672a41b24e431a7bb2f97, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7105649790442005628}
   m_SourcePrefab: {fileID: 100100000, guid: 93e71aa6249672a41b24e431a7bb2f97, type: 3}
+--- !u!1 &7105649790442005627 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8892154417841259905, guid: 93e71aa6249672a41b24e431a7bb2f97, type: 3}
+  m_PrefabInstance: {fileID: 7105649790442005626}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7105649790442005628
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7105649790442005627}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 015a1ecadf5fb2847b84137a2c29e5d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gridManager: {fileID: 0}
+  gridPosition: {x: 2, y: 2}
+  snapToGridEachFrame: 1
+  actionCooldown: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
