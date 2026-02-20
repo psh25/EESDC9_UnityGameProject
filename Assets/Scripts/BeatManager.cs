@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class BeatManager : MonoBehaviour
 {
-    public float bpm = 120f;
+    public float bpm = 60f;
+    public float gametime = 0f;
     private float beatInterval;
     private float beatTimer = 0f;
     public static event System.Action OnBeat;
@@ -20,6 +21,7 @@ public class BeatManager : MonoBehaviour
     {
         //每拍触发OnBeat事件
         beatTimer += Time.deltaTime;
+        gametime += Time.deltaTime;
         if (beatTimer >= beatInterval)
         {
             beatTimer -= beatInterval;

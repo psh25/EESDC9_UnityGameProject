@@ -48,3 +48,6 @@ MonoBehaviour:
   height: 8
   cellSize: 1
   tilePrefab: {fileID: 202515193057225326, guid: 02dffe596fd7f6f4186b3f4133c35777, type: 3}
+  showSpawnPoints: 1
+  spawnPointColor: {r: 0.2, g: 0.9, b: 0.4, a: 0.9}
+  spawnPointRadius: 0.08

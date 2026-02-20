@@ -12,7 +12,8 @@ public class Entity : MonoBehaviour
     public Vector2Int GridPosition => gridPosition;
     protected GridManager GridManager => gridManager;
 
-    private void Awake()
+    // 尝试获取GridManager
+    public virtual void Awake()
     {
         if (gridManager == null)
         {
@@ -142,8 +143,20 @@ public class Entity : MonoBehaviour
         transform.localPosition = gridManager.GridToWorld(gridPosition);
     }
 
-    // 被攻击时的默认响应（子类中可重写）
+    // 被攻击时的响应（子类中重写）
     public virtual void Onhit(Vector2Int attackDirection)
     {
     }
+
+    // 死亡：删除自身
+    public void Die()
+    {
+        if (GridManager != null)
+        {
+            GridManager.ClearOccupant(GridPosition);
+        }
+
+        Destroy(gameObject);
+    }
+
 }

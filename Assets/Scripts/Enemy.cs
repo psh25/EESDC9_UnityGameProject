@@ -2,16 +2,7 @@ using UnityEngine;
 
 public class Enemy : Entity
 {
-    // 死亡处理：删除自身
-    public void Die()
-    {
-        if (GridManager != null)
-        {
-            GridManager.ClearOccupant(GridPosition);
-        }
-
-        Destroy(gameObject);
-    }
+    public int health = 1;
 
     // 被攻击时的响应
     public override void Onhit(Vector2Int attackDirection)
@@ -28,16 +19,23 @@ public class Enemy : Entity
         }
 
         Entity target = GridManager.GetOccupant(targetPos);
-        if (target is Box || target is Player)
+        if (target is Box || target is Player || target is Firewall)
         {
-            Die();
             return;
         }
 
         if (target is Enemy enemy)
         {
-            enemy.Die();
-            Die();
+            enemy.health --;
+            health --;
+            if (enemy.health <= 0)
+            {
+                enemy.Die();
+            }
+            if (health <= 0)
+            {
+                Die();
+            }
             return;
         }
 

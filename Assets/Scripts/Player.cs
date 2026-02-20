@@ -4,6 +4,7 @@ public class Player : Entity
 {
     [Header("Move Settings")]
     [SerializeField] public float actCooldown = 0.2f;
+    [SerializeField] private float baseBpm = 60f;
 
     private float nextMoveTime;
 
@@ -18,15 +19,44 @@ public class Player : Entity
          Dead //3
     }
     private PlayerState currentState = PlayerState.Idle;
-    
 
-    // 获取Animator组件
-    private void Start()
+    // 获取组件
+    public override void Awake()
     {
-        animator = GetComponent<Animator>();
+        base.Awake();
+        if (animator == null)
+        {
+            animator = GetComponent<Animator>();
+        }
     }
 
-    // 处理输入和行动
+    //订阅OnBeat事件
+    private void OnEnable()
+    {
+        BeatManager.OnBeat += OnBeat;
+    }
+    //消失时取消订阅
+    private void OnDisable()
+    {
+        BeatManager.OnBeat -= OnBeat;
+    }
+    //同步到Animator
+    private void OnBeat()
+    {
+        animator.SetTrigger("OnBeat");
+        SyncAnimatorSpeed();
+    }
+    //根据节拍调整动画速度
+    private void SyncAnimatorSpeed()
+    {
+    var beatManager = FindObjectOfType<BeatManager>();
+    if (beatManager == null) return;
+
+    float ratio = beatManager.bpm / baseBpm;
+    animator.speed = ratio;
+    }
+
+    // 运行期间每帧调用
     private void Update()
     {
         if (GridManager == null)
