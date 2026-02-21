@@ -21,7 +21,7 @@ public class GridManager : MonoBehaviour
     {
         if (walkableTilemap == null)
         {
-            walkableTilemap = GetComponentInChildren<Tilemap>();
+            walkableTilemap = FindObjectOfType<Tilemap>();
         }
 
         BuildGridFromTilemap();

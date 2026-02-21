@@ -8,6 +8,8 @@ public class Destination : Entity
 {
     [SerializeField]private string nextSceneName;  //下一关的场景名称
     private bool finished = false;
+
+
     private void Update()       //检查是否完成关卡
     {
         if (GridManager == null)
