@@ -65,11 +65,6 @@ public class Player : Entity
             return;
         }
 
-        if (health <= 0)
-        {
-            currentState = PlayerState.Dead;
-        }
-
         // 根据当前状态设置动画参数
         animator.SetInteger("playerState", (int)currentState);
         
@@ -149,4 +144,12 @@ public class Player : Entity
         return false;
     }
 
+    override public void Onhit(Vector2Int fromDirection)
+    {
+        health -= 1;
+        if(health <= 0)
+        {
+            Die();
+        }
+    }
 }

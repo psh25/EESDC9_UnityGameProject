@@ -17,14 +17,9 @@ public class Box : Entity
         }
 
         Entity target = GridManager.GetOccupant(targetPos);
-        if (target is Box || target is Player)
+        if (target != null)
         {
             return;
-        }
-
-        if (target is Enemy enemy)
-        {
-            enemy.Die();
         }
 
         TryMove(attackDirection);

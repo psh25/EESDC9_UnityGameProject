@@ -29,11 +29,11 @@ public class BeatManager : MonoBehaviour
         {
             beatTimer -= beatInterval;
 
-            // 先更新拍号并广播“拍开始”，用于清理上一拍预警
+            // 更新拍号并广播拍开始
             BeatIndex++;
             OnBeatStart?.Invoke();
 
-            // 再广播常规节拍逻辑（玩家/敌人行动等）
+            // 其他常规节拍逻辑
             OnBeat?.Invoke();
         }
     }
