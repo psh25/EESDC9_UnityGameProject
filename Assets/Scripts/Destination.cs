@@ -10,18 +10,20 @@ public class Destination : Entity
     private bool finished = false;
     private void Update()       //检查是否完成关卡
     {
-        Vector2Int checkPos;
-        for(int i = 0; i < GridManager.width; i++)
+        if (GridManager == null)
         {
-            for(int j = 0; j < GridManager.height; j++)
+            return;
+        }
+
+        // 只遍历Tilemap上的有效格子，避免依赖固定宽高
+        foreach (Vector2Int checkPos in GridManager.GetValidPositions())
+        {
+            if (GridManager.GetOccupant(checkPos) is Enemy || GridManager.GetOccupant(checkPos) is Firewall)
             {
-                checkPos = new Vector2Int(i, j);
-                if (GridManager.GetOccupant(checkPos) is Enemy||GridManager.GetOccupant(checkPos) is Firewall)
-                {
-                    return;
-                }
+                return;
             }
         }
+
         finished = true;
     }
     public override void Onhit(Vector2Int attackDirection)

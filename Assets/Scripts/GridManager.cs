@@ -1,15 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class GridManager : MonoBehaviour
 {
-    [Header("Grid Settings")]
-    public int width = 8;
-    public int height = 8;
-    public float cellSize = 1f;
-
-    [Header("Visuals")]
-    public GameObject tilePrefab;
+    [Header("Tilemap Settings")]
+    [SerializeField] private Tilemap walkableTilemap;
 
     [Header("Gizmos")]
     public bool showSpawnPoints = true;
@@ -21,59 +17,64 @@ public class GridManager : MonoBehaviour
     // 记录每个格子上的当前实体
     private readonly Dictionary<Vector2Int, Entity> occupants = new Dictionary<Vector2Int, Entity>();
 
-    // 网格在世界坐标中的原点（左下角格子的中心）
-    private Vector3 gridOriginWorld = Vector3.zero;
-
     private void Awake()
     {
-        CenterGridToWorld();
-        BuildGrid();
+        if (walkableTilemap == null)
+        {
+            walkableTilemap = GetComponentInChildren<Tilemap>();
+        }
+
+        BuildGridFromTilemap();
     }
 
-    // 建立坐标系并生成瓷砖
-    private void BuildGrid()
+    // 根据Tilemap重建可用格子集合
+    private void BuildGridFromTilemap()
     {
         validPositions.Clear();
         occupants.Clear();
 
-        for (int y = 0; y < height; y++)
+        if (walkableTilemap == null)
         {
-            for (int x = 0; x < width; x++)
-            {
-                var gridPos = new Vector2Int(x, y);
-                validPositions.Add(gridPos);
+            return;
+        }
 
-                // 在有效位置显示瓷砖贴图
-                if (tilePrefab != null)
+        BoundsInt bounds = walkableTilemap.cellBounds;
+        for (int y = bounds.yMin; y < bounds.yMax; y++)
+        {
+            for (int x = bounds.xMin; x < bounds.xMax; x++)
+            {
+                Vector3Int cellPos = new Vector3Int(x, y, 0);
+                if (!walkableTilemap.HasTile(cellPos))
                 {
-                    var worldPos = GridToWorld(gridPos);
-                    var tileInstance = Instantiate(tilePrefab, worldPos, Quaternion.identity);
-                    tileInstance.transform.SetParent(transform, true);
+                    continue;
                 }
+
+                validPositions.Add(new Vector2Int(x, y));
             }
         }
-    }
-
-    // 网格中心位于世界中心（不移动自身物体）
-    private void CenterGridToWorld()
-    {
-        gridOriginWorld = CalculateGridOriginWorld();
-    }
-
-    private Vector3 CalculateGridOriginWorld()
-    {
-        Vector3 gridWorldSize = new Vector3(width * cellSize, height * cellSize, 0f);
-        Vector3 gridCenterOffset = gridWorldSize * 0.5f;
-        Vector3 halfCell = new Vector3(cellSize * 0.5f, cellSize * 0.5f, 0f);
-
-        // 世界中心为 (0,0,0)
-        return -gridCenterOffset + halfCell;
     }
 
     // 将网格坐标转换为世界坐标
     public Vector3 GridToWorld(Vector2Int gridPos)
     {
-        return gridOriginWorld + new Vector3(gridPos.x * cellSize, gridPos.y * cellSize, 0f);
+        if (walkableTilemap == null)
+        {
+            return transform.position;
+        }
+
+        return walkableTilemap.GetCellCenterWorld(new Vector3Int(gridPos.x, gridPos.y, 0));
+    }
+
+    // 将世界坐标转换为网格坐标
+    public Vector2Int WorldToGrid(Vector3 worldPos)
+    {
+        if (walkableTilemap == null)
+        {
+            return Vector2Int.zero;
+        }
+
+        Vector3Int cellPos = walkableTilemap.WorldToCell(worldPos);
+        return new Vector2Int(cellPos.x, cellPos.y);
     }
 
     // 判断坐标是否有效
@@ -110,6 +111,18 @@ public class GridManager : MonoBehaviour
     public void ClearOccupant(Vector2Int gridPos)
     {
         occupants.Remove(gridPos);
+    }
+
+    // 获取所有有效格子（供外部遍历）
+    public IEnumerable<Vector2Int> GetValidPositions()
+    {
+        return validPositions;
+    }
+
+    // 当地图在编辑器中被修改时可手动调用此方法刷新缓存
+    public void RefreshFromTilemap()
+    {
+        BuildGridFromTilemap();
     }
 
 
@@ -150,19 +163,35 @@ public class GridManager : MonoBehaviour
     // 在Scene视图中绘制有效位置
     private void OnDrawGizmos()
     {
-        if (!showSpawnPoints || width <= 0 || height <= 0 || cellSize <= 0f)
+        if (!showSpawnPoints || spawnPointRadius <= 0f)
         {
             return;
         }
 
-        Vector3 originWorld = CalculateGridOriginWorld();
+        if (walkableTilemap == null)
+        {
+            walkableTilemap = GetComponentInChildren<Tilemap>();
+        }
+
+        if (walkableTilemap == null)
+        {
+            return;
+        }
+
         Gizmos.color = spawnPointColor;
 
-        for (int y = 0; y < height; y++)
+        BoundsInt bounds = walkableTilemap.cellBounds;
+        for (int y = bounds.yMin; y < bounds.yMax; y++)
         {
-            for (int x = 0; x < width; x++)
+            for (int x = bounds.xMin; x < bounds.xMax; x++)
             {
-                Vector3 worldPos = originWorld + new Vector3(x * cellSize, y * cellSize, 0f);
+                Vector3Int cellPos = new Vector3Int(x, y, 0);
+                if (!walkableTilemap.HasTile(cellPos))
+                {
+                    continue;
+                }
+
+                Vector3 worldPos = walkableTilemap.GetCellCenterWorld(cellPos);
                 Gizmos.DrawSphere(worldPos, spawnPointRadius);
             }
         }
