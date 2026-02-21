@@ -1017,6 +1017,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Destination
       objectReference: {fileID: 0}
+    - target: {fileID: 3280570810693739497, guid: 283c807c028a40741b29cf30d6925f25, type: 3}
+      propertyPath: nextSceneName
+      value: PauseScene
+      objectReference: {fileID: 0}
     - target: {fileID: 4885367975404578097, guid: 283c807c028a40741b29cf30d6925f25, type: 3}
       propertyPath: m_LocalPosition.x
       value: 3.49

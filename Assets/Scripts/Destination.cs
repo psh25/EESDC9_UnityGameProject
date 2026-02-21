@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 
 public class Destination : Entity
 {
+    [SerializeField]private string nextSceneName;  //下一关的场景名称
     private bool finished = false;
     private void Update()       //检查是否完成关卡
     {
@@ -27,15 +28,7 @@ public class Destination : Entity
     {
         if (finished == true)
         {
-            var activeScene = SceneManager.GetActiveScene();
-            switch(activeScene.name)      //Todo:根据当前场景名称加载下一个场景
-            {
-                case "Game1":
-                    SceneManager.LoadScene("StartScene");
-                    break;
-                default:
-                    break;
-            }
+            SceneManager.LoadSceneAsync(nextSceneName,LoadSceneMode.Single);  //加载下一关场景
         }
         else
         {

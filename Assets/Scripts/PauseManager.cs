@@ -9,25 +9,24 @@ public class PauseManager : MonoBehaviour
 
     void Awake()
     {
-        // È·±£µ¥Àı
+        // ç¡®ä¿å•ä¾‹
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
         Instance = this;
-        DontDestroyOnLoad(gameObject); // ÈÃËüÔÚ³¡¾°ÇĞ»»Ê±²»±»Ïú»Ù
     }
 
     [SerializeField] private KeyCode pauseKey = KeyCode.Escape;
-    [SerializeField] private string pauseSceneName = "PauseScene"; // ÔİÍ£³¡¾°µÄÃû³Æ
+    [SerializeField] private string pauseSceneName = "PauseScene"; // æš‚åœåœºæ™¯çš„åç§°
 
     private bool isPaused = false;
-    private bool isSceneLoaded = false; // ±ê¼ÇÔİÍ£³¡¾°ÊÇ·ñÒÑ¼ÓÔØ
+    private bool isSceneLoaded = false; // æ ‡è®°æš‚åœåœºæ™¯æ˜¯å¦å·²åŠ è½½
 
     void Update()
     {
-        // °´ÏÂÔİÍ£¼üÊ±ÇĞ»»ÔİÍ£×´Ì¬
+        // æŒ‰ä¸‹æš‚åœé”®æ—¶åˆ‡æ¢æš‚åœçŠ¶æ€
         if (Input.GetKeyDown(pauseKey))
         {
             TogglePause();
@@ -50,16 +49,16 @@ public class PauseManager : MonoBehaviour
     {
         if (!isSceneLoaded)
         {
-            // ÒÔµş¼ÓÄ£Ê½¼ÓÔØÔİÍ£³¡¾°
+            // ä»¥å åŠ æ¨¡å¼åŠ è½½æš‚åœåœºæ™¯
             SceneManager.LoadSceneAsync(pauseSceneName, LoadSceneMode.Additive);
             isSceneLoaded = true;
         }
 
-        // ÔİÍ£ÓÎÏ·Ê±¼ä
+        // æš‚åœæ¸¸æˆæ—¶é—´
         Time.timeScale = 0f;
         isPaused = true;
 
-        // ÏÔÊ¾Êó±ê¹â±ê£¨¿É¸ù¾İĞèÒª£©
+        // æ˜¾ç¤ºé¼ æ ‡å…‰æ ‡ï¼ˆå¯æ ¹æ®éœ€è¦ï¼‰
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
@@ -68,26 +67,26 @@ public class PauseManager : MonoBehaviour
     {
         if (isSceneLoaded)
         {
-            // Ğ¶ÔØÔİÍ£³¡¾°
+            // å¸è½½æš‚åœåœºæ™¯
             SceneManager.UnloadSceneAsync(pauseSceneName);
             isSceneLoaded = false;
         }
 
-        // »Ö¸´ÓÎÏ·Ê±¼ä
+        // æ¢å¤æ¸¸æˆæ—¶é—´
         Time.timeScale = 1f;
         isPaused = false;
 
     }
 
-    // Ìá¹©¸øÔİÍ£³¡¾°ÖĞµÄ°´Å¥µ÷ÓÃµÄ·½·¨
+    // æä¾›ç»™æš‚åœåœºæ™¯ä¸­çš„æŒ‰é’®è°ƒç”¨çš„æ–¹æ³•
     public void QuitToMainMenu()
     {
-        // ÏÈ»Ö¸´Ê±¼ä£¬ÔÙÇĞ»»³¡¾°
+        // å…ˆæ¢å¤æ—¶é—´ï¼Œå†åˆ‡æ¢åœºæ™¯
         Time.timeScale = 1f;
-        // Ğ¶ÔØÔİÍ£³¡¾°£¨Èç¹û»¹¼ÓÔØ×Å£©
+        // å¸è½½æš‚åœåœºæ™¯ï¼ˆå¦‚æœè¿˜åŠ è½½ç€ï¼‰
         if (isSceneLoaded)
             SceneManager.UnloadSceneAsync(pauseSceneName);
-        // ¼ÓÔØÖ÷²Ëµ¥³¡¾°
+        // åŠ è½½ä¸»èœå•åœºæ™¯
         SceneManager.LoadScene("StartScene");
     }
 }

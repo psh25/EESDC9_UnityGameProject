@@ -44,7 +44,7 @@ public class StartMenuController : MonoBehaviour
         if (!string.IsNullOrEmpty(mainGameSceneName))
         {
             // 3. 核心：执行场景切换
-            SceneManager.LoadScene(mainGameSceneName);
+            SceneManager.LoadSceneAsync(mainGameSceneName,LoadSceneMode.Single);
         }
         else
         {
