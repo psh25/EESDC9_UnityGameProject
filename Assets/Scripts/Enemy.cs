@@ -31,6 +31,23 @@ public class Enemy : Entity
             Debug.Log("敌人在节拍时执行行动");
         }
 
+    // 使用 Enemy/子类调用 TryMove 时可收到移动回调
+    public new bool TryMove(Vector2Int direction)
+    {
+        Vector2Int oldPos = GridPosition;
+        bool moved = base.TryMove(direction);
+        if (moved)
+        {
+            OnMovedByTryMove(oldPos, GridPosition);
+        }
+
+        return moved;
+    }
+
+    protected virtual void OnMovedByTryMove(Vector2Int oldPos, Vector2Int newPos)
+    {
+    }
+
     // 被攻击时的响应
     public override void Onhit(Vector2Int attackDirection)
     {

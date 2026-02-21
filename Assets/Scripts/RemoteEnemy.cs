@@ -6,6 +6,7 @@ public class RemoteEnemy : Enemy
 {
     private int turnCounter = 0;               // 0:抬手回合, 1:行动回合
     private Vector2Int? pendingDirection = null;
+    private int pendingWarningExecuteBeat = -1;
 
     public override void PerformAction()
     {
@@ -15,6 +16,7 @@ public class RemoteEnemy : Enemy
         if (turnCounter == 0)  //抬手回合
         {
             ChooseDirection();
+            ReportNextBeatWarnings(); // 抬手后立刻上报下一拍预警
             turnCounter = 1;
         }
         else  //行动回合
@@ -28,21 +30,61 @@ public class RemoteEnemy : Enemy
                     if (occupant is Player player)
                     {
                         //Todo:造成伤害
-                        Debug.Log("远程敌人攻击玩家");
-                        break;
+                        player.Onhit(pendingDirection.Value);
                     }
-                    else if (occupant != null)
-                    {
-                        // 遇到其他实体（如墙），停止攻击
-                        Debug.Log("远程敌人攻击被阻挡");
-                        break;
-                    }
+                    
                     currentHit += pendingDirection.Value;  // 继续向前检查
                     Debug.Log("当前激光位置：" + currentHit);
                 }
+
+                pendingWarningExecuteBeat = -1;
+                pendingDirection = null;
                 turnCounter = 0;
             }
         }
+    }
+
+    protected override void OnMovedByTryMove(Vector2Int oldPos, Vector2Int newPos)
+    {
+        base.OnMovedByTryMove(oldPos, newPos);
+
+        // 抬手阶段内被迫移动：整条预警线立刻刷新到新位置，结算拍号保持不变
+        if (turnCounter != 1 || !pendingDirection.HasValue)
+        {
+            return;
+        }
+
+        if (pendingWarningExecuteBeat <= BeatManager.BeatIndex)
+        {
+            return;
+        }
+
+        ReportPendingWarningsAtCurrentPosition();
+    }
+
+    // 上报远程敌人下一拍的危险格（沿抬手方向直到被阻挡）
+    private void ReportNextBeatWarnings()
+    {
+        pendingWarningExecuteBeat = BeatManager.BeatIndex + 1;
+        ReportPendingWarningsAtCurrentPosition();
+    }
+
+    private void ReportPendingWarningsAtCurrentPosition()
+    {
+        if (GridManager == null || !pendingDirection.HasValue)
+        {
+            return;
+        }
+
+        List<Vector2Int> warningCells = new List<Vector2Int>();
+        Vector2Int current = GridPosition + pendingDirection.Value;
+        while (GridManager.IsValidPosition(current))
+        {
+            warningCells.Add(current);
+            current += pendingDirection.Value;
+        }
+
+        WarningManager.TryReportWarnings(this, warningCells, pendingWarningExecuteBeat);
     }
 
     private void ChooseDirection()

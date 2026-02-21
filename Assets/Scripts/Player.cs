@@ -5,6 +5,7 @@ public class Player : Entity
     [Header("Move Settings")]
     [SerializeField] public float actCooldown = 0.2f;
     [SerializeField] private float baseBpm = 60f;
+    public int health = 3;
 
     private float nextMoveTime;
 
@@ -68,7 +69,7 @@ public class Player : Entity
         animator.SetInteger("playerState", (int)currentState);
         
         //冷却中无法行动
-        if (Time.time < nextMoveTime)
+        if (Time.time < nextMoveTime && currentState != PlayerState.Dead)
         {
             return;
         }
@@ -143,4 +144,12 @@ public class Player : Entity
         return false;
     }
 
+    override public void Onhit(Vector2Int fromDirection)
+    {
+        health -= 1;
+        if(health <= 0)
+        {
+            Die();
+        }
+    }
 }

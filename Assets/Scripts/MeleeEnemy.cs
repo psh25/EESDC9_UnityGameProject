@@ -6,6 +6,7 @@ public class MeleeEnemy : Enemy
 {
     private int turnCounter = 0;               // 0:抬手回合, 1:行动回合
     private Vector2Int? pendingDirection = null;
+    private int pendingWarningExecuteBeat = -1;
 
     public override void PerformAction()
     {
@@ -15,6 +16,7 @@ public class MeleeEnemy : Enemy
         if (turnCounter == 0)
         {
             ChooseDirection();  //抬手阶段
+            ReportNextBeatWarning(); // 抬手后立刻上报下一拍预警
             turnCounter = 1;
         }
         else  //行动阶段
@@ -33,8 +35,7 @@ public class MeleeEnemy : Enemy
                 Entity occupant = GridManager.GetOccupant(targetPos);
                 if (occupant is Player player)
                 {
-                    //Todo:造成伤害
-                    Debug.Log("近战敌人攻击了玩家");
+                    player.Onhit(pendingDirection.Value);
                 }
                 else if (occupant == null)  // 没有障碍，可以移动
                 {
@@ -43,13 +44,54 @@ public class MeleeEnemy : Enemy
                 else
                 {
                     // 前方有障碍，可能什么都不做
-                    Debug.Log("近战敌人被阻挡");
                 }
 
                 pendingDirection = null;
+                pendingWarningExecuteBeat = -1;
             }
             turnCounter = 0;
         }
+    }
+
+    protected override void OnMovedByTryMove(Vector2Int oldPos, Vector2Int newPos)
+    {
+        base.OnMovedByTryMove(oldPos, newPos);
+
+        // 抬手阶段内被迫移动：立即将预警刷新到新目标格，结算拍号保持不变
+        if (turnCounter != 1 || !pendingDirection.HasValue)
+        {
+            return;
+        }
+
+        if (pendingWarningExecuteBeat <= BeatManager.BeatIndex)
+        {
+            return;
+        }
+
+        ReportPendingWarningAtCurrentPosition();
+    }
+
+    // 上报近战敌人下一拍的危险格（正前方一格）
+    private void ReportNextBeatWarning()
+    {
+        pendingWarningExecuteBeat = BeatManager.BeatIndex + 1;
+        ReportPendingWarningAtCurrentPosition();
+    }
+
+    private void ReportPendingWarningAtCurrentPosition()
+    {
+        if (GridManager == null || !pendingDirection.HasValue)
+        {
+            return;
+        }
+
+        Vector2Int targetPos = GridPosition + pendingDirection.Value;
+        if (!GridManager.IsValidPosition(targetPos))
+        {
+            return;
+        }
+
+        WarningManager.TryReportWarning(this, targetPos, pendingWarningExecuteBeat);
     }
 
     private void ChooseDirection()  //选择方向
@@ -68,6 +110,7 @@ public class MeleeEnemy : Enemy
         {
             pendingDirection = validDirs[Random.Range(0, validDirs.Count)];  //随机选择一个有效方向
             Debug.Log("抬手方向：" + pendingDirection);
+            
         }
         else
         {

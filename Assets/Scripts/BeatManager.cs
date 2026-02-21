@@ -8,12 +8,15 @@ public class BeatManager : MonoBehaviour
     public float gametime = 0f;
     private float beatInterval;
     private float beatTimer = 0f;
+    public static int BeatIndex { get; private set; } = 0;
+    public static event System.Action OnBeatStart;
     public static event System.Action OnBeat;
 
     // Start is called before the first frame update
     void Start()
     {
         beatInterval = 60f / bpm;//计算每拍的时间间隔
+        BeatIndex = 0;
     }
 
     // Update is called once per frame
@@ -25,6 +28,12 @@ public class BeatManager : MonoBehaviour
         if (beatTimer >= beatInterval)
         {
             beatTimer -= beatInterval;
+
+            // 更新拍号并广播拍开始
+            BeatIndex++;
+            OnBeatStart?.Invoke();
+
+            // 其他常规节拍逻辑
             OnBeat?.Invoke();
         }
     }
