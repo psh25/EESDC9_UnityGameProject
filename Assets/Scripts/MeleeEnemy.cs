@@ -15,6 +15,7 @@ public class MeleeEnemy : Enemy
         if (turnCounter == 0)
         {
             ChooseDirection();  //抬手阶段
+            ReportNextBeatWarning(); // 抬手后立刻上报下一拍预警
             turnCounter = 1;
         }
         else  //行动阶段
@@ -52,6 +53,23 @@ public class MeleeEnemy : Enemy
         }
     }
 
+    // 上报近战敌人下一拍的危险格（正前方一格）
+    private void ReportNextBeatWarning()
+    {
+        if (GridManager == null || !pendingDirection.HasValue)
+        {
+            return;
+        }
+
+        Vector2Int targetPos = GridPosition + pendingDirection.Value;
+        if (!GridManager.IsValidPosition(targetPos))
+        {
+            return;
+        }
+
+        WarningManager.TryReportNextBeatWarning(targetPos);
+    }
+
     private void ChooseDirection()  //选择方向
     {
         Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
@@ -68,6 +86,7 @@ public class MeleeEnemy : Enemy
         {
             pendingDirection = validDirs[Random.Range(0, validDirs.Count)];  //随机选择一个有效方向
             Debug.Log("抬手方向：" + pendingDirection);
+            
         }
         else
         {

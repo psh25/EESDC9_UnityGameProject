@@ -15,6 +15,7 @@ public class RemoteEnemy : Enemy
         if (turnCounter == 0)  //抬手回合
         {
             ChooseDirection();
+            ReportNextBeatWarnings(); // 抬手后立刻上报下一拍预警
             turnCounter = 1;
         }
         else  //行动回合
@@ -42,6 +43,37 @@ public class RemoteEnemy : Enemy
                 }
                 turnCounter = 0;
             }
+        }
+    }
+
+    // 上报远程敌人下一拍的危险格（沿抬手方向直到被阻挡）
+    private void ReportNextBeatWarnings()
+    {
+        if (GridManager == null || !pendingDirection.HasValue)
+        {
+            return;
+        }
+
+        Vector2Int current = GridPosition + pendingDirection.Value;
+        while (GridManager.IsValidPosition(current))
+        {
+            Entity occupant = GridManager.GetOccupant(current);
+
+            if (occupant is Player)
+            {
+                WarningManager.TryReportNextBeatWarning(current);
+                break;
+            }
+
+            if (occupant != null)
+            {
+                // 被其他实体阻挡，不再继续延伸预警
+                break;
+            }
+
+            // 空格也属于将被远程攻击经过的危险区域
+            WarningManager.TryReportNextBeatWarning(current);
+            current += pendingDirection.Value;
         }
     }
 
