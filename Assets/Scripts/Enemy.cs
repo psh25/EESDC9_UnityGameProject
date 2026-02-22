@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
 
@@ -48,6 +49,11 @@ public class Enemy : Entity
     {
     }
 
+    public virtual void BossGotHit()
+    {
+        // Boss特有的受击逻辑
+    }
+
     // 被攻击时的响应
     public override void Onhit(Vector2Int attackDirection)
     {
@@ -68,19 +74,19 @@ public class Enemy : Entity
             return;
         }
 
+
         if (target is Enemy enemy)
         {
-            enemy.health --;
-            health --;
-            if (enemy.health <= 0)
+            if (enemy is Boss boss)
+            {
+                boss.BossGotHit();
+            }
+            else
             {
                 enemy.Die();
             }
-            if (health <= 0)
-            {
-                Die();
-            }
-            return;
+            Die();
+                return;
         }
 
         TryMove(attackDirection);

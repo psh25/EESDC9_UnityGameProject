@@ -9,6 +9,8 @@ public class Entity : MonoBehaviour
     [SerializeField] protected Vector2Int gridPosition;
     [SerializeField] private bool snapToGridEachFrame = true;
 
+    public bool autoRegisterOnStart = true; // 是否在Start自动注册到GridManager
+
     public Vector2Int GridPosition => gridPosition;
     protected GridManager GridManager => gridManager;
 
@@ -25,7 +27,9 @@ public class Entity : MonoBehaviour
     {
 
         //吸附到最近的可用位置
-        if (gridManager != null && gridManager.TryFindNearestAvailablePosition(transform.position, out Vector2Int nearestPosition))
+        if (autoRegisterOnStart &&
+    gridManager != null &&
+    gridManager.TryFindNearestAvailablePosition(transform.position, out Vector2Int nearestPosition))  
         {
             gridPosition = nearestPosition;
             gridManager.SetOccupant(gridPosition, this);

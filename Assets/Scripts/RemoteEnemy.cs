@@ -34,7 +34,7 @@ public class RemoteEnemy : Enemy
                     }
                     
                     currentHit += pendingDirection.Value;  // 继续向前检查
-                    Debug.Log("当前激光位置：" + currentHit);
+                    //Debug.Log("当前激光位置：" + currentHit);
                 }
 
                 pendingWarningExecuteBeat = -1;
@@ -102,12 +102,12 @@ public class RemoteEnemy : Enemy
         if (validDirs.Count > 0)
         {
             pendingDirection = validDirs[Random.Range(0, validDirs.Count)];  // 从有效方向中随机选择一个
-            Debug.Log("抬手方向：" + pendingDirection);
+            //Debug.Log("抬手方向：" + pendingDirection);
         }
         else
         {
             pendingDirection = null;  // 没有有效方向，远程敌人将不会攻击
-            Debug.Log("远程敌人没有有效方向可抬手");
+            //Debug.Log("远程敌人没有有效方向可抬手");
         }
     }
 }

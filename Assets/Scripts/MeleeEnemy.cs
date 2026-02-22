@@ -109,13 +109,13 @@ public class MeleeEnemy : Enemy
         if (validDirs.Count > 0)
         {
             pendingDirection = validDirs[Random.Range(0, validDirs.Count)];  //随机选择一个有效方向
-            Debug.Log("抬手方向：" + pendingDirection);
+            //Debug.Log("抬手方向：" + pendingDirection);
             
         }
         else
         {
             pendingDirection = null;  //没有有效方向，保持原地不动
-             Debug.Log("没有有效方向，近战敌人保持原地");
+             //Debug.Log("没有有效方向，近战敌人保持原地");
         }
     }
 }
