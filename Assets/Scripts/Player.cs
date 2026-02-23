@@ -115,6 +115,7 @@ public class Player : Entity
         {
             currentState = PlayerState.Moving;
             nextMoveTime = Time.time + actCooldown;
+            Debug.Log($"Player moved to {GridPosition}");
         }
 
     }
@@ -175,7 +176,7 @@ public class Player : Entity
         activeHealthVisuals.Clear();
         for (int i = 0; i < health; i++)
         {
-            GameObject healthVisual = Instantiate(healthPrefab, new Vector3(-10 + i * 0.8f, 4.5f, 0), Quaternion.identity);
+            GameObject healthVisual = Instantiate(healthPrefab, new Vector3(-8 + i * 0.8f, 4.5f, 0), Quaternion.identity);
             activeHealthVisuals.Add(healthVisual);
         }
     }

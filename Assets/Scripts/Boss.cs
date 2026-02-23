@@ -4,31 +4,57 @@ using System.Runtime.CompilerServices;
 
 public class Boss : Enemy
 {
-    [SerializeField]private GameObject minionPrefab;
+    [SerializeField] private GameObject minionPrefab;
     [SerializeField] private GameObject firewallPrefab;
+    [SerializeField] private int summonCd;
+    [SerializeField] private int laserCd;
+    private int currentSummonCd;
+    private int currentLaserCd;
     int period1health = 20;
     int period2health = 10;
     int period = 1;
-    bool invincible= false;
+    bool invincible = false;
 
     public new void Awake()
     {
         base.Awake();
         health = 30;
+        currentLaserCd = 1;
+        currentSummonCd = 1;
     }
     public void SetBossOccupant()
     { // 占领以Boss为中心的3x3格子
-        Vector2Int[] occupantOffset=new Vector2Int[9];
-          int index = 0;
-          for(int i = 1; i >= -1; i--) {
-              for(int j = -1; j <= 1; j++) { 
-                  occupantOffset[index++] = new Vector2Int(i, j);
-              }
-          }
-          foreach(var offset in occupantOffset) {
-                GridManager.SetOccupant(GridPosition + offset, this);
-                Debug.Log($"Boss 占领格子: {GridPosition + offset}");
+        Vector2Int[] occupantOffset = new Vector2Int[9];
+        int index = 0;
+        for (int i = 1; i >= -1; i--)
+        {
+            for (int j = -1; j <= 1; j++)
+            {
+                occupantOffset[index++] = new Vector2Int(i, j);
+            }
         }
+        foreach (var offset in occupantOffset)
+        {
+            GridManager.SetOccupant(GridPosition + offset, this);
+            Debug.Log($"Boss 占领格子: {GridPosition + offset}");
+        }
+    }
+
+    private void Laser()
+    {
+        int executeBeat = BeatManager.BeatIndex + 1;
+        int choosetype = Random.Range(0, 2);
+        if (choosetype == 0)
+        {
+            int chooserow = Random.Range(-5, 5);
+            LaserManager.TryScheduleFullRowLaser(chooserow, executeBeat);
+        }
+        else if (choosetype == 1)
+        {
+            int choosecolumn = Random.Range(-9, 9);
+            LaserManager.TryScheduleFullColumnLaser(choosecolumn, executeBeat);
+        }
+
     }
 
     private void Summon(string name)
@@ -43,7 +69,7 @@ public class Boss : Enemy
                 newMinion.autoRegisterOnStart = false;
                 newMinion.SetGridPosition(spawnPos.Value);
             }
-            else if (name=="firewall")
+            else if (name == "firewall")
             {
                 GameObject newMinionObj = Instantiate(firewallPrefab);
                 Firewall newMinion = newMinionObj.GetComponent<Firewall>();
@@ -110,7 +136,26 @@ public class Boss : Enemy
     public override void PerformAction()
     {
         // 每拍行动（AI 决策）
-        Summon("enemy"); // 召唤小怪
+        if (currentSummonCd <= 0)
+        {
+            Summon("enemy"); // 召唤小怪
+            currentSummonCd = summonCd; // 重置召唤冷却
+        }
+        else
+        {
+            currentSummonCd--;   // 递减召唤冷却
+        }
+
+        if (currentLaserCd <= 0)
+        {
+            Laser();
+            currentLaserCd = laserCd;
+        }
+        else
+        {
+            currentLaserCd--;
+        }
+
         Debug.Log("Boss 行动节拍");
         Debug.Log($"Boss 当前生命值: {health}, 当前阶段: {period}, 无敌状态: {invincible}");
 
@@ -137,7 +182,8 @@ public class Boss : Enemy
 
     public override void BossGotHit()
     {
-        if(invincible) {
+        if (invincible)
+        {
             Debug.Log("Boss 处于无敌状态，未受伤");
             return;
         }
@@ -145,7 +191,8 @@ public class Boss : Enemy
         health--;
         Debug.Log($"Boss 受到攻击，当前生命值: {health}");
 
-        if (health==period1health||health==period2health) {
+        if (health == period1health || health == period2health)
+        {
             period++;
             SwitchPeriod();
             invincible = true;
@@ -153,12 +200,14 @@ public class Boss : Enemy
             return;
         }
 
-        if(health<=0) {
+        if (health <= 0)
+        {
             Debug.Log("Boss 被击败！");
             Die();         //清除场上所有敌人
             foreach (var pos in GridManager.GetValidPositions())
             {
-                if(GridManager.GetOccupant(pos) is Enemy enemy) {
+                if (GridManager.GetOccupant(pos) is Enemy enemy)
+                {
                     enemy.Die();
                 }
             }
@@ -166,9 +215,6 @@ public class Boss : Enemy
         }
     }
 }
-
-
-
 
 
 
