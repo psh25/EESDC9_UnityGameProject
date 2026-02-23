@@ -155,7 +155,14 @@ public class Boss : Enemy
 
         if(health<=0) {
             Debug.Log("Boss 被击败！");
-            Die();         //Todo:清除场上所有敌人
+            Die();         //清除场上所有敌人
+            foreach (var pos in GridManager.GetValidPositions())
+            {
+                if(GridManager.GetOccupant(pos) is Enemy enemy) {
+                    enemy.Die();
+                }
+            }
+
         }
     }
 }
