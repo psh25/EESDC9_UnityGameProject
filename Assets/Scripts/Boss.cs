@@ -8,19 +8,28 @@ public class Boss : Enemy
     [SerializeField] private GameObject firewallPrefab;
     [SerializeField] private int summonCd;
     [SerializeField] private int laserCd;
-    private int currentSummonCd;
-    private int currentLaserCd;
+    [SerializeField] private int reverseDirectionCd;
+    private int summonBeat;
+    private int laserBeat;
+    private int reverseWarnDuration = 3; // 反转警告持续时间，单位为拍
+    private int startReverseWarnBeat;
+    private int reverseDirectionDuration = 5; // 反转持续时间，单位为拍
+    private int startReverseDirectionBeat;
+    private int currentBeat;
     int period1health = 20;
     int period2health = 10;
     int period = 1;
     bool invincible = false;
+    private Player player;
 
     public new void Awake()
     {
         base.Awake();
         health = 30;
-        currentLaserCd = 1;
-        currentSummonCd = 1;
+        laserBeat = 1;
+        summonBeat = 1;
+        startReverseWarnBeat = 1;
+        player = FindObjectOfType<Player>();
     }
     public void SetBossOccupant()
     { // 占领以Boss为中心的3x3格子
@@ -93,11 +102,54 @@ public class Boss : Enemy
 
     }
 
+    private void ReverseWarn()
+    {
+        Debug.Log("Boss 发出反转警告！");    //Todo:在Boss上显示一个明显的视觉提示，告诉玩家即将反转移动方向
+    }
+
+    private void ReverseDirection()
+    {
+        if (player != null)
+        {
+            player.isReverseDirection = true;
+            Debug.Log("Boss 反转了玩家的移动方向！");
+        }
+    }
+
+    private void EndReverseDirection()
+    {
+        if (player != null)
+        {
+            player.isReverseDirection = false;
+            Debug.Log("Boss 结束了玩家的移动方向反转！");
+        }
+    }
+
     private void SwitchPeriod()
     {
+        foreach (Vector2Int checkPos in GridManager.GetValidPositions())
+        {
+            if (GridManager.GetOccupant(checkPos) is MeleeEnemy)
+            {
+                GridManager.GetOccupant(checkPos).Die(); // 清除场上所有 MeleeEnemy
+            }
+        }
+        period++;
+        invincible = true; // 进入新阶段后暂时无敌
         for (int i = 0; i < 3; i++)
         {
             Summon("firewall"); // 召唤 Firewall
+        }
+        if (period == 2)
+        {
+            startReverseWarnBeat = BeatManager.BeatIndex + 2; // 设置第一次反转警告时间
+            summonCd--;
+            laserCd--;
+        }
+        if (period == 3)
+        {
+            summonCd--;
+            laserCd--;
         }
     }
 
@@ -135,28 +187,23 @@ public class Boss : Enemy
 
     public override void PerformAction()
     {
+        currentBeat = BeatManager.BeatIndex;  // 获取当前拍数
         // 每拍行动（AI 决策）
-        if (currentSummonCd <= 0)
+        if (currentBeat==summonBeat)
         {
             Summon("enemy"); // 召唤小怪
-            currentSummonCd = summonCd; // 重置召唤冷却
-        }
-        else
-        {
-            currentSummonCd--;   // 递减召唤冷却
+            summonBeat+=summonCd; // 重置召唤冷却
         }
 
-        if (currentLaserCd <= 0)
+        if (currentBeat==laserBeat)
         {
             Laser();
-            currentLaserCd = laserCd;
-        }
-        else
-        {
-            currentLaserCd--;
+            laserBeat+=laserCd;
         }
 
-        Debug.Log("Boss 行动节拍");
+
+
+            Debug.Log("Boss 行动节拍");
         Debug.Log($"Boss 当前生命值: {health}, 当前阶段: {period}, 无敌状态: {invincible}");
 
         if (invincible)
@@ -166,6 +213,22 @@ public class Boss : Enemy
 
         if (period >= 2)
         {
+            if (currentBeat == startReverseWarnBeat)
+            {
+                ReverseWarn();
+                startReverseDirectionBeat = currentBeat + reverseWarnDuration; // 设置反转持续时间
+            }
+
+            if (currentBeat == startReverseDirectionBeat)
+            {
+                ReverseDirection();
+            }
+
+            if (currentBeat == startReverseDirectionBeat + reverseDirectionDuration)
+            {
+                EndReverseDirection();
+                startReverseWarnBeat = currentBeat + reverseDirectionCd; // 设置下一次反转警告时间
+            }
             //Todo:增加Boss的攻击行为，例如发射子弹等
         }
 
@@ -193,9 +256,7 @@ public class Boss : Enemy
 
         if (health == period1health || health == period2health)
         {
-            period++;
             SwitchPeriod();
-            invincible = true;
             Debug.Log($"Boss 进入第{period}阶段，暂时无敌");
             return;
         }

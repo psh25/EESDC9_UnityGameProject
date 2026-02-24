@@ -2289,6 +2289,10 @@ PrefabInstance:
       value: Player
       objectReference: {fileID: 0}
     - target: {fileID: 1758158882522774821, guid: db3a1d0c3a98c4441a474a3e8fbc6404, type: 3}
+      propertyPath: health
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 1758158882522774821, guid: db3a1d0c3a98c4441a474a3e8fbc6404, type: 3}
       propertyPath: healthPrefab
       value: 
       objectReference: {fileID: 4228308786191081229, guid: b2320b6b806ea034c960800e6a562a47, type: 3}
@@ -2355,7 +2359,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1299212108272322416, guid: b656077e8fc6bd54fbf4c42f741dbc8a, type: 3}
       propertyPath: summonCd
-      value: 3
+      value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 1299212108272322416, guid: b656077e8fc6bd54fbf4c42f741dbc8a, type: 3}
       propertyPath: minionPrefab
@@ -2365,6 +2369,14 @@ PrefabInstance:
       propertyPath: firewallPrefab
       value: 
       objectReference: {fileID: 1999088129985610963, guid: 9ba3a4274ed26d041a1823ba36946e63, type: 3}
+    - target: {fileID: 1299212108272322416, guid: b656077e8fc6bd54fbf4c42f741dbc8a, type: 3}
+      propertyPath: reverseDirectionCd
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 7333968324822854094, guid: b656077e8fc6bd54fbf4c42f741dbc8a, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.075
+      objectReference: {fileID: 0}
     - target: {fileID: 7333968324822854094, guid: b656077e8fc6bd54fbf4c42f741dbc8a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.46

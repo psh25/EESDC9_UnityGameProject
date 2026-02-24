@@ -24,7 +24,7 @@ public class Portal : Entity
         // 遍历Tilemap上的有效格子
         foreach (Vector2Int checkPos in GridManager.GetValidPositions())
         {
-            if (GridManager.GetOccupant(checkPos) is Boss || GridManager.GetOccupant(checkPos) is Firewall)
+            if (GridManager.GetOccupant(checkPos) is Enemy || GridManager.GetOccupant(checkPos) is Firewall)
             {
                 active = false;  //如果还有Boss或Firewall，关卡未完成
                 return;

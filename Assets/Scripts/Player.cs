@@ -7,6 +7,7 @@ public class Player : Entity
     [Header("Move Settings")]
     [SerializeField] public float actCooldown = 0.2f;
     [SerializeField] private float baseBpm = 120f;
+    public bool isReverseDirection = false;
 
     [SerializeField] private GameObject healthPrefab;
     public int health = 3;
@@ -90,7 +91,12 @@ public class Player : Entity
         {
             return;
         }
-        
+
+        if(isReverseDirection)
+        {
+            direction = -direction;   // 反转输入方向
+        }
+
         Vector2Int targetPos = GridPosition + direction;
 
         //目标格子无效则不行动
