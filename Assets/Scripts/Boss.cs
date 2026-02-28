@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.Tilemaps;
@@ -8,52 +9,52 @@ public class Boss : Enemy
 {
     [SerializeField] private GameObject minionPrefab;
     [SerializeField] private GameObject firewallPrefab;
-    [SerializeField] private int summonCd;
-    [SerializeField] private int laserCd;
-    [SerializeField] private int reverseDirectionCd;
-    [SerializeField]private int ultimateCd;
-    [SerializeField] private int Ymax;     // 地图的Y轴范围，假设地图中心为(0,0)，则范围为[-Ymax, Ymax-1]
-    [SerializeField] private int maxEnemyNumber;     
+    [SerializeField] private int skillCd=10;
+    [SerializeField] private int laserCd=5;
+    [SerializeField] private int reverseDirectionMinCd;        //反转技能最小冷却
+    [SerializeField]private int maxEnergy;           //能量满时使用终结技能
+    [SerializeField] private int Ymax=5;     // 地图的Y轴范围，假设地图中心为(0,0)，则范围为[-Ymax, Ymax-1]
+    [SerializeField] private int maxEnemyNumber=15;     
     List<Vector2Int> safePositions = new List<Vector2Int>();
     List<Vector2Int> dangerPositions = new List<Vector2Int>();
+    List<int> remainingLasers = new List<int>();  // 用于存储当前阶段剩余的随机激光模式
     private Tilemap tilemap;  // 用于标记危险区域和安全区域的Tilemap
     public TileBase dangerTile;  // 用于标记危险区域的Tile
     public TileBase safeTile;    // 用于标记安全区域的Tile
     private int enemyCount;    //敌人数量
-    private int summonBeat;
+    private int skillBeat;
     private int laserBeat;
+    private int reverseDirectionCd;   //反转技能冷却计数
+    private int energy;
     private int reverseWarnDuration = 3; // 反转警告持续时间，单位为拍
-    private int startReverseWarnBeat;
-    private int reverseDirectionDuration = 5; // 反转持续时间，单位为拍
+    private int reverseDirectionDuration = 3; // 反转持续时间，单位为拍
     private int startReverseDirectionBeat;
     private int ultimateWarnDuration = 10; // 终极技能警告持续时间，单位为拍
-    private int startUltimateWarnBeat;
     private int ultimateDuration = 10; // 终极技能持续时间，单位为拍
     private int startUltimateBeat;
     private int currentBeat;
     int period1health = 20;
     int period2health = 10;
     int period = 1;
-    int laserCount = 0;
-    int maxLaserCount = 1;
     bool invincible = false;
     private Player player;
     private Dictionary<Vector2Int, TileBase>
     originalTiles = new Dictionary<Vector2Int, TileBase>();
+    private Camera mainCamera;
+    private Color originalCameraColor;
 
     public new void Awake()
     {
         tilemap = GridManager.walkableTilemap;
         base.Awake();
         health = 30;
+        skillBeat = BeatManager.BeatIndex + 1;
+        laserBeat = BeatManager.BeatIndex + 1;
+        energy = 0;
         enemyCount = 0;
-        laserBeat = 1;
-        summonBeat = 1;
-        laserCount = 0;
-        maxLaserCount = 1;
-        startReverseWarnBeat = 1;
-        startUltimateWarnBeat = 5;
         player = FindObjectOfType<Player>();
+        mainCamera = Camera.main;
+        originalCameraColor = mainCamera.backgroundColor;
 
     }
     public void SetBossOccupant()
@@ -81,10 +82,40 @@ public class Boss : Enemy
             yield return null;
     }
 
+    private List<int> GenerateRandomOrder()  //生成随机激光顺序
+    {
+        List<int> order = new List<int> { };
+        switch (period)
+        {
+            case 1:
+                order.AddRange(new int[] { 0, 1 });  // 第1阶段只有前两种激光模式
+                break;
+            case 2:
+                order.AddRange(new int[] { 0, 1, 2, 3 });  // 第2阶段增加第四种激光模式
+                break;
+            case 3:
+                order.AddRange(new int[] { 0, 1, 2, 3, 4 });  // 第3阶段增加第五种激光模式
+                break;
+        }
+        for (int i = order.Count - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            int temp = order[i];
+            order[i] = order[j];
+            order[j] = temp;
+        }
+        return order;
+    }
 
     private void Laser()
     {
-        switch (laserCount)
+        if(remainingLasers.Count==0)     //如果当前激光模式列表已空，生成新的随机激光顺序
+        {
+            remainingLasers = GenerateRandomOrder();
+        }
+        int nextLaser = remainingLasers[0];    //获取下一个激光模式
+        remainingLasers.RemoveAt(0);    //从列表中移除已使用的
+        switch (nextLaser)
         {
             case (0):
                 StartCoroutine(LaserType0());
@@ -107,8 +138,6 @@ public class Boss : Enemy
                 Debug.Log("释放激光4");
                 break;
         }
-        laserCount++;
-        if (laserCount > maxLaserCount) laserCount = 0;
     }
 
     private IEnumerator LaserType0()          //脉冲激光：选定2行2列，连续放5次激光
@@ -116,13 +145,22 @@ public class Boss : Enemy
         try
         {
             int[] rand = new int[4];
-            rand[0] = Random.Range(-Ymax, Ymax);
+            while (true)
+            {
+                rand[0] = Random.Range(-Ymax, Ymax);
+                if(rand[0]!=player.GridPosition.y) break;    //确保激光不生成在玩家脸上
+            }
             for (int i = 1; i < 4; i++)
             {
                 while (true)
                 {
                     rand[i] = Random.Range(-Ymax, Ymax);
-                    if (rand[i] != rand[i - 1]) break;
+                    if (rand[i] != rand[i - 1])
+                    {
+                        if (i == 1 && rand[i] != player.GridPosition.y) break;
+                        if (i == 2 && rand[i] != player.GridPosition.x) break;
+                        if (i == 3 && rand[i] != player.GridPosition.x) break;
+                    }
                 }
 
             }
@@ -164,7 +202,7 @@ public class Boss : Enemy
     {
         try
         {
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < 5; i++)
             {
                 int rand=Random.Range(0, 2);
                 if (rand == 0)
@@ -186,12 +224,6 @@ public class Boss : Enemy
         try
         {
             for (int i = -Ymax; i < Ymax; i++)
-            {
-                LaserManager.TryScheduleFullRowLaser(i, BeatManager.BeatIndex + 1);
-                LaserManager.TryScheduleFullColumnLaser(i, BeatManager.BeatIndex + 1);
-                yield return WaitForBeats(1);
-            }
-            for (int i = Ymax - 1; i >= -Ymax; i--)
             {
                 LaserManager.TryScheduleFullRowLaser(i, BeatManager.BeatIndex + 1);
                 LaserManager.TryScheduleFullColumnLaser(i, BeatManager.BeatIndex + 1);
@@ -281,6 +313,7 @@ public class Boss : Enemy
     private void ReverseWarn()
     {
         Debug.Log("Boss 发出反转警告！");    //Todo:在Boss上显示一个明显的视觉提示，告诉玩家即将反转移动方向
+        mainCamera.backgroundColor = new Color(238, 130, 238); //浅紫罗兰
     }
 
     private void ReverseDirection()
@@ -288,6 +321,7 @@ public class Boss : Enemy
         if (player != null)
         {
             player.isReverseDirection = true;
+            mainCamera.backgroundColor = new Color(148, 0, 211); //深紫罗兰
             Debug.Log("Boss 反转了玩家的移动方向！");
         }
     }
@@ -297,20 +331,54 @@ public class Boss : Enemy
         if (player != null)
         {
             player.isReverseDirection = false;
+            mainCamera.backgroundColor = originalCameraColor; // 恢复原始背景色
             Debug.Log("Boss 结束了玩家的移动方向反转！");
         }
+    }
+
+    private void TryRandomBasicSkill()   // 在反转技能冷却期间，优先召唤小怪；反转技能冷却结束后，随机选择召唤小怪或反转玩家移动方向
+    {
+        if (reverseDirectionCd > 0)     //如果反转技能还在冷却中，优先召唤小怪
+        {
+            Summon("enemy");
+            reverseDirectionCd--;
+            skillBeat = currentBeat + skillCd;
+        }
+
+        else   //如果反转技能冷却结束，随机选择召唤小怪或反转玩家移动方向
+        {
+            int rand = Random.Range(0, 2);
+            if (rand == 0)
+            {
+                Summon("enemy");
+                skillBeat = currentBeat + skillCd;
+            }
+            else
+            {
+                ReverseWarn();
+                startReverseDirectionBeat = currentBeat + reverseWarnDuration; // 设置反转持续时间
+                skillBeat = currentBeat + reverseWarnDuration + reverseDirectionDuration + skillCd;
+                reverseDirectionCd = reverseDirectionMinCd; // 重置反转技能冷却
+            }
+
+
+        }
+
+
     }
 
     private void UltimateWarn()
     {
         HashSet<Vector2Int> tempSet = new HashSet<Vector2Int>(); // 用于临时存储安全区域，避免重复
         Debug.Log("Boss 发出终极技能警告！");    //Todo:在Boss上显示一个明显的视觉提示，告诉玩家即将使用终极技能
-        for(int i = 0; i < 2; i++)
+        mainCamera.backgroundColor = new Color(255, 69, 0); //橙红色
+        startUltimateBeat= currentBeat + ultimateWarnDuration; // 设置终极技能开始的拍数
+        for (int i = 0; i < 2; i++)
         {
             Vector2Int? centerPos = FindRandomCenterPositionOnMap();
-            for (int x = -2; x <= 2; x++)       // 以随机中心点为中心，标记一个5x5的安全区域
+            for (int x = -1; x <= 1; x++)       // 以随机中心点为中心，标记一个3*3的安全区域
             {
-                for(int y = -2; y <= 2; y++)
+                for(int y = -1; y <= 1; y++)
                 {
                     Vector2Int checkPos = centerPos.Value + new Vector2Int(x, y);
                     if (GridManager.GetOccupant(checkPos) is not Boss)
@@ -328,6 +396,7 @@ public class Boss : Enemy
     {
         RestoreOriginalTiles(); // 恢复之前的瓦片，清除安全区域标记
         Debug.Log("Boss 使用了终极技能！");    //Todo:Boss执行终极技能，例如发射大量子弹、造成范围伤害等
+        mainCamera.backgroundColor = new Color(255, 0, 0); //红色
         foreach (Vector2Int checkPos in GridManager.GetValidPositions())       // 将非安全区域标记为危险区域
         {
             if(!safePositions.Contains(checkPos))
@@ -349,9 +418,10 @@ public class Boss : Enemy
     private void EndUltimate()
     {
         Debug.Log("Boss 结束了终极技能！");    //Todo:结束终极技能的效果，例如停止发射子弹、移除范围伤害标记等
+        mainCamera.backgroundColor = originalCameraColor; // 恢复原始背景色
         dangerPositions.Clear(); // 清空危险区域列表，准备下一次使用
         RestoreOriginalTiles(); // 恢复之前的瓦片，清除危险区域标
-        player.actCooldown = 0.2f; // 恢复玩家的正常行动速度
+        player.actCooldown = 0.1f; // 恢复玩家的正常行动速度
     }
 
     private void SwitchPeriod()
@@ -371,17 +441,15 @@ public class Boss : Enemy
         }
         if (period == 2)
         {
-            startReverseWarnBeat = BeatManager.BeatIndex + 2; // 设置第一次反转警告时间
-            summonCd--;
+            reverseDirectionCd = 0;
+            skillCd-=2;
             laserCd--;
-            maxLaserCount = 3;
         }
         if (period == 3)
         {
-            startUltimateWarnBeat = BeatManager.BeatIndex + 10; // 设置第一次终极技能警告时间
-            summonCd--;
+            energy = 0;
+            skillCd-=2;
             laserCd--;
-            maxLaserCount = 4;
         }
     }
 
@@ -470,23 +538,23 @@ public class Boss : Enemy
                 enemyCount++;
                 
         }
-        if (enemyCount < maxEnemyNumber)    //敌人数量有上限
-        {
-            if (currentBeat >= summonBeat)
-            {
-                Summon("enemy"); // 召唤小怪
-                summonBeat += summonCd; // 重置召唤冷却
-            }
-        }
 
         if (currentBeat==laserBeat)
         {
             Laser();
         }
 
+        if (period == 1)
+        {
+            if (currentBeat == skillBeat)
+            {
+                Summon("enemy"); // 召唤小怪
+                skillBeat = currentBeat + skillCd; // 重置召唤冷却
+            }
+        }
 
 
-            Debug.Log("Boss 行动节拍");
+        Debug.Log("Boss 行动节拍");
         Debug.Log($"Boss 当前生命值: {health}, 当前阶段: {period}, 无敌状态: {invincible}");
 
         if (invincible)
@@ -494,60 +562,69 @@ public class Boss : Enemy
             SwitchPeriodCheck(); // 检查是否可以解除无敌状态
         }
 
-        if (period >= 2)
+        if (period == 2)
         {
-            if (currentBeat == startReverseWarnBeat)
+            if (currentBeat == skillBeat)          //释放技能
             {
-                ReverseWarn();
-                startReverseDirectionBeat = currentBeat + reverseWarnDuration; // 设置反转持续时间
+                TryRandomBasicSkill();
             }
 
-            if (currentBeat == startReverseDirectionBeat)
-            {
-                ReverseDirection();
-            }
 
-            if (currentBeat == startReverseDirectionBeat + reverseDirectionDuration)
-            {
-                EndReverseDirection();
-                startReverseWarnBeat = currentBeat + reverseDirectionCd; // 设置下一次反转警告时间
-            }
             //Todo:增加Boss的攻击行为，例如发射子弹等
         }
 
         if (period == 3)
         {
-            if(currentBeat == startUltimateWarnBeat)
+            if (currentBeat == skillBeat)
             {
-                UltimateWarn();
-                startUltimateBeat = currentBeat + ultimateWarnDuration; // 设置终极技能执行时间
-            }
-
-            if(currentBeat == startUltimateBeat)
-            {
-                Ultimate();
-            }
-
-            if(currentBeat> startUltimateBeat && currentBeat < startUltimateBeat + ultimateDuration)
-            { 
-                foreach (Vector2Int pos in dangerPositions)       
+                if(energy<maxEnergy)        //如果能量未满，随机选择一个基本技能；如果能量已满，优先使用终极技能
                 {
-                    if (GridManager.GetOccupant(pos) is Player player)
-                    {
-                        player.actCooldown = 0.4f; //缓慢玩家的行动速度，增加挑战性
-                    }
+                    TryRandomBasicSkill();
+                    energy++;
                 }
-
-                Debug.Log("Boss 终极技能持续中，对玩家造成持续伤害！");
-            }
-
-            if (currentBeat == startUltimateBeat + ultimateDuration)
-            {
-                EndUltimate();
-                startUltimateWarnBeat = currentBeat + ultimateCd; // 设置下一次终极技能警告时间
+                else
+                {
+                    UltimateWarn(); // 在技能冷却期间持续发出终极技能警告，提醒玩家躲避
+                    skillBeat = BeatManager.BeatIndex + ultimateWarnDuration + ultimateDuration + skillCd;
+                }
             }
             //Todo:Boss进入第3阶段，增加更强的攻击行为，例如发射更多子弹、增加移动速度等
         }
+
+        if (currentBeat == startReverseDirectionBeat)      //反转技能逻辑
+        {
+            ReverseDirection();
+        }
+
+        if (currentBeat == startReverseDirectionBeat + reverseDirectionDuration)
+        {
+            EndReverseDirection();
+        }
+
+        if (currentBeat == startUltimateBeat)      //终极技能逻辑
+        {
+            Ultimate();
+        }
+
+        if (currentBeat > startUltimateBeat && currentBeat < startUltimateBeat + ultimateDuration)
+        {
+            foreach (Vector2Int pos in dangerPositions)
+            {
+                if (GridManager.GetOccupant(pos) is Player player)
+                {
+                    player.actCooldown = 0.4f; //缓慢玩家的行动速度，增加挑战性
+                }
+            }
+
+            Debug.Log("Boss 终极技能持续中，对玩家造成持续伤害！");
+        }
+
+        if (currentBeat == startUltimateBeat + ultimateDuration)
+        {
+            EndUltimate();
+            energy = 0;   // 重置能量
+        }
+
     }
 
     public override void Onhit(Vector2Int attackDirection)

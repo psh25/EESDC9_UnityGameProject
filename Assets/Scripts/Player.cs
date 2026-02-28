@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class Player : Entity
 {
     [Header("Move Settings")]
-    [SerializeField] public float actCooldown = 0.2f;
+    [SerializeField] public float actCooldown = 0.1f;
     [SerializeField] private float baseBpm = 120f;
     public bool isReverseDirection = false;
 
