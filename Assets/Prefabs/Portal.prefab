@@ -75,7 +75,7 @@ SpriteRenderer:
   m_SortingLayerID: -1345661183
   m_SortingLayer: 3
   m_SortingOrder: 0
-  m_Sprite: {fileID: -8187355101989356663, guid: 373e11e7ad5cd9e478298504804d58de, type: 3}
+  m_Sprite: {fileID: -133452680, guid: 4115ace8f4063004baca11ebce29e10e, type: 3}
   m_Color: {r: 0.72327036, g: 0.72327036, b: 0.72327036, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -101,7 +101,7 @@ MonoBehaviour:
   gridManager: {fileID: 0}
   gridPosition: {x: 8, y: 8}
   snapToGridEachFrame: 1
-  autoRegisterOnStart: 0
+  autoRegisterOnStart: 1
   nextSceneName: 
   gameStateManager: {fileID: 0}
   active: 0

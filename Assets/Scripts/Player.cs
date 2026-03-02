@@ -163,7 +163,6 @@ public class Player : Entity
         if(health <= 0)
         {
             Die();
-            SceneManager.LoadSceneAsync("Lobby",LoadSceneMode.Single);
         }
     }
 
@@ -198,5 +197,6 @@ public class Player : Entity
                 Destroy(effect, deathEffectDuration);
             }
         }
+        SceneManager.LoadSceneAsync("Lobby",LoadSceneMode.Single);
     }
 }

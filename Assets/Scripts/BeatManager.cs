@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BeatManager : MonoBehaviour
 {
-    public float bpm = 120f;
+    public float bpm = 122f;
     public float gametime = 0f;
     private float beatInterval;
     private float beatTimer = 0f;
