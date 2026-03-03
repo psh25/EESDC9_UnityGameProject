@@ -1,64 +1,82 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+// 传送门：负责显示激活状态、检测关卡完成并切换场景
 public class Portal : Entity
 {
-    [SerializeField]private string nextSceneName;  //下一场景名称
+    // 目标场景名称
+    [SerializeField]private string nextSceneName;
+
+    // 门的动画组件
     private Animator animator;
+    // 全局关卡状态管理器引用
     public GameStateManager gameStateManager;
-    [SerializeField]private bool active = false;    //是否激活
+
+    // 门当前是否可用
+    [SerializeField]private bool active = false;
+
+    // 当前场景名/当前关卡键/目标关卡键
     private string currentSceneName;
     private string currentLevel;
     private string nextLevel;
 
+    // 初始化组件与场景关键信息
     public override void Awake()
     {
         base.Awake();
-        if (animator == null) //获取Animator组件
+        if (animator == null)
         {
             animator = GetComponent<Animator>();
         }
-        if (gameStateManager == null) //获取GameStateManager组件
+
+        // 优先使用单例，失败再回退场景查找
+        if (gameStateManager == null)
         {
-            gameStateManager = FindObjectOfType<GameStateManager>();
+            gameStateManager = GameStateManager.Instance;
+            if (gameStateManager == null)
+            {
+                gameStateManager = FindObjectOfType<GameStateManager>();
+            }
         }
 
-        currentSceneName = SceneManager.GetActiveScene().name;  //获取当前场景名称
-        currentLevel = currentSceneName.Split('.')[0];  //提取当前关卡（Game1, Game2, Game3, Lobby等）
-        nextLevel = nextSceneName.Split('.')[0];  //提取下一关卡名称
+        // 记录当前场景与目标场景的关卡键（兼容可能带扩展名的写法）
+        currentSceneName = SceneManager.GetActiveScene().name;
+        currentLevel = currentSceneName.Split('.')[0];
+        nextLevel = nextSceneName.Split('.')[0];
     }
 
+    // Lobby 中根据关卡状态更新门开关；子关中检查是否达成通关条件
     private void Update()
     {
-        if (currentSceneName == "Lobby")  //如果在Lobby,根据GameStateManager中的LevelAccess字典设置传送门状态
+        if (currentSceneName == "Lobby")
         {
-            active = gameStateManager.LevelAccess[nextLevel];
-            animator.SetBool("Active", active); //更新传送门状态显示
+            active = gameStateManager != null && gameStateManager.IsLevelAccessible(nextLevel);
+            animator.SetBool("Active", active);
         }
         
-        else if (!active)//小关内持续检查是否完成关卡
+        else if (!active)
         {
             CheckCompletion();
             animator.SetBool("Active", active);  
         }
     }
 
-    private void CheckCompletion()    //检查是否完成关卡(小关)
+    // 小关通关检测：地图上不存在 Boss/Firewall 则视为完成
+    private void CheckCompletion()
     {
         if (GridManager == null)
         {
             return;
         }
 
-        // 遍历Tilemap上的有效格子
+        // 遍历 Tilemap 有效格，若仍有关键敌人则未完成
         foreach (Vector2Int checkPos in GridManager.GetValidPositions())
         {
             if (GridManager.GetOccupant(checkPos) is Boss || GridManager.GetOccupant(checkPos) is Firewall)
             {
-                active = false;  //如果还有Boss或Firewall，关卡未完成
+                active = false;
                 return;
             }
         }
@@ -66,23 +84,20 @@ public class Portal : Entity
     }
 
 
+    // 被攻击触发传送：激活时切场景；从子关返回 Lobby 时更新关卡完成状态
     public override void Onhit(Vector2Int attackDirection)
     {
         if (active == true)
         {
-            if (gameStateManager != null && nextSceneName == "Lobby")//支线完成后重设关卡访问权限
+            if (gameStateManager != null && nextSceneName == "Lobby")
             {
-                gameStateManager.LevelAccess[currentLevel] = false;
-                if (gameStateManager.LevelAccess["Game1"] == false && gameStateManager.LevelAccess["Game2"] == false && gameStateManager.LevelAccess["Game3"] == false) //如果所有小关都完成了，解锁Boss关
-                {
-                    gameStateManager.LevelAccess["GameBoss"] = true;
-                }
+                gameStateManager.MarkLevelCompleted(currentLevel);
             }
-            SceneManager.LoadSceneAsync(nextSceneName,LoadSceneMode.Single);  //加载下一关场景
+            SceneManager.LoadSceneAsync(nextSceneName,LoadSceneMode.Single);
         }
         else
         {
-            Debug.Log("关卡未完成");          //关卡未完成，不能进入下一关
+            Debug.Log("关卡未完成");
             return;
         }
     }
