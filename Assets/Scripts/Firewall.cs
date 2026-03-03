@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Firewall : Entity
 {
-    private int health = 3;
+    private int health = 5;
 
     [Header("Death Effect")]
     [SerializeField] private GameObject deathEffectPrefab;

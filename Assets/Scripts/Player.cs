@@ -5,8 +5,10 @@ using System.Collections.Generic;
 public class Player : Entity
 {
     [Header("Move Settings")]
-    [SerializeField] public float actCooldown = 0.2f;
+    [SerializeField] public float actCooldown = 0.1f;
     [SerializeField] private float baseBpm = 120f;
+    public bool isReverseDirection = false;
+    public bool isProtected = false;
 
     [SerializeField] private GameObject healthPrefab;
     public int health = 3;
@@ -93,7 +95,12 @@ public class Player : Entity
         {
             return;
         }
-        
+
+        if(isReverseDirection)
+        {
+            direction = -direction;   // 反转输入方向
+        }
+
         Vector2Int targetPos = GridPosition + direction;
 
         //目标格子无效则不行动
@@ -118,6 +125,7 @@ public class Player : Entity
         {
             currentState = PlayerState.Moving;
             nextMoveTime = Time.time + actCooldown;
+            Debug.Log($"Player moved to {GridPosition}");
         }
 
     }
@@ -158,6 +166,12 @@ public class Player : Entity
 
     override public void Onhit(Vector2Int fromDirection)
     {
+        if (isProtected)
+        {
+            // Todo:展示护盾碎裂的动画或特效
+            isProtected = false; // 保护状态只持续一次
+            return;
+        }
         health -= 1;
         DisplayHealth();
         if(health <= 0)
@@ -177,7 +191,7 @@ public class Player : Entity
         activeHealthVisuals.Clear();
         for (int i = 0; i < health; i++)
         {
-            GameObject healthVisual = Instantiate(healthPrefab, new Vector3(-10 + i * 0.8f, 4.5f, 0), Quaternion.identity);
+            GameObject healthVisual = Instantiate(healthPrefab, new Vector3(-8 + i * 0.8f, 4.5f, 0), Quaternion.identity);
             activeHealthVisuals.Add(healthVisual);
         }
     }

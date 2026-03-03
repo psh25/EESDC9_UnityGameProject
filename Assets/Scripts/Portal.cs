@@ -74,7 +74,7 @@ public class Portal : Entity
         // 遍历 Tilemap 有效格，若仍有关键敌人则未完成
         foreach (Vector2Int checkPos in GridManager.GetValidPositions())
         {
-            if (GridManager.GetOccupant(checkPos) is Boss || GridManager.GetOccupant(checkPos) is Firewall)
+            if (GridManager.GetOccupant(checkPos) is Enemy || GridManager.GetOccupant(checkPos) is Firewall)
             {
                 active = false;
                 return;

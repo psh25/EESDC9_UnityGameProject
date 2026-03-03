@@ -5,6 +5,8 @@ using UnityEngine;
 public class MeleeEnemy : Enemy
 {
     private int turnCounter = 0;               // 0:抬手回合, 1:行动回合
+    public int actionCd=3;
+    private int actionBeat;
     private Vector2Int? pendingDirection = null;
     private int pendingWarningExecuteBeat = -1;
 
@@ -14,6 +16,7 @@ public class MeleeEnemy : Enemy
     public override void Awake()
     {
         base.Awake();
+        actionBeat = BeatManager.BeatIndex + 1;
         if (animator == null)
         {
             animator = GetComponent<Animator>();
@@ -24,6 +27,11 @@ public class MeleeEnemy : Enemy
     {
         if (GridManager == null)
             return;
+
+        if(BeatManager.BeatIndex < actionBeat)
+        {
+            return; // 还没到行动拍，什么都不做
+        }
 
         if (turnCounter == 0)
         {
@@ -73,6 +81,7 @@ public class MeleeEnemy : Enemy
                 pendingWarningExecuteBeat = -1;
             }
             turnCounter = 0;
+            actionBeat = BeatManager.BeatIndex + actionCd; // 设置下一次行动的拍数
         }
     }
 
