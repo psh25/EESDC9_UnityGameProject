@@ -11,6 +11,7 @@ using static UnityEditor.PlayerSettings;
 
 public class Boss : Enemy
 {
+    private MessageManager messageManager; // 用于显示消息
     public Image healthBarFill;
     public Color normalColor = Color.red;
     public Color invincibleColor = Color.yellow;  //无敌状态下的血条颜色
@@ -29,7 +30,8 @@ public class Boss : Enemy
     List<int> remainingLasers = new List<int>();  // 用于存储当前阶段剩余的随机激光模式
     private Tilemap tilemap;  // 用于标记危险区域和安全区域的Tilemap
     public TileBase dangerTile;  // 用于标记危险区域的Tile
-    public TileBase safeTile;    // 用于标记安全区域的Tile
+    public TileBase warningTile;    // 用于标记安全区域的Tile
+    public AnimatedTile ultimateAnimatedTile;        //释放终结技能时的动画Tile
     private int skillBeat;
     private int laserBeat;
     private int rageCount;   //反转技能冷却计数
@@ -72,6 +74,7 @@ public class Boss : Enemy
     private new void Start()
     {
         base.Start();
+        messageManager = FindObjectOfType<MessageManager>();
         SetBossOccupant(); // 占领格子
         if(healthBarFill!=null)
         {
@@ -351,6 +354,11 @@ public class Boss : Enemy
     private void Rage()
     {
         mainCamera.backgroundColor = new Color(148, 0, 211); //深紫罗兰
+        if (messageManager != null)
+        {
+            messageManager.ShowMessage("Boss处于狂暴状态期间，让敌人撞击一次Boss可提前结束狂暴状态并使你获得免伤护盾！", 4f);
+        }
+
         foreach (MeleeEnemy enemy in FindObjectsOfType<MeleeEnemy>())
         {
             rageBeat=BeatManager.BeatIndex;
@@ -393,6 +401,11 @@ public class Boss : Enemy
     {
         HashSet<Vector2Int> tempSet = new HashSet<Vector2Int>(); // 用于临时存储安全区域，避免重复
         Debug.Log("Boss 发出终极技能警告！");    //Todo:在Boss上显示一个明显的视觉提示，告诉玩家即将使用终极技能
+        if (messageManager != null)
+        {
+            messageManager.ShowMessage("Boss即将释放终结技能，尽快移动到未被污染的地砖避免被秒杀！", 4f);
+        }
+
         mainCamera.backgroundColor = new Color(255, 69, 0); //橙红色
         startUltimateBeat= currentBeat + ultimateWarnDuration; // 设置终极技能开始的拍数
         for (int i = 0; i < 2; i++)
@@ -411,7 +424,15 @@ public class Boss : Enemy
             }
         }
         safePositions = new List<Vector2Int>(tempSet); // 将HashSet转换为List
-        SetTiles(safePositions, safeTile); // 将安全区域标记为 SafeTile
+        foreach (Vector2Int checkPos in GridManager.GetValidPositions())       // 将非安全区域标记为危险区域
+        {
+            if (!safePositions.Contains(checkPos))
+            {
+                dangerPositions.Add(checkPos);
+            }
+        }
+
+        SetTiles(dangerPositions, warningTile); // 将危险区域标记为 WarningTile，提示玩家躲避
     }
 
     private void Ultimate()
@@ -419,15 +440,8 @@ public class Boss : Enemy
         RestoreOriginalTiles(); // 恢复之前的瓦片，清除安全区域标记
         Debug.Log("Boss 使用了终极技能！");    //Todo:Boss执行终极技能，例如发射大量子弹、造成范围伤害等
         mainCamera.backgroundColor = new Color(255, 0, 0); //红色
-        foreach (Vector2Int checkPos in GridManager.GetValidPositions())       // 将非安全区域标记为危险区域
-        {
-            if(!safePositions.Contains(checkPos))
-            {
-                dangerPositions.Add(checkPos);
-            }
-        }
         safePositions.Clear(); // 清空安全区域列表，准备下一次使用
-        SetTiles(dangerPositions, dangerTile); // 将危险区域标记为 DangerTile
+        SetAnimatedTiles(dangerPositions, ultimateAnimatedTile); // 将危险区域标记为 DangerTile
         foreach(Vector2Int pos in dangerPositions)       // 对危险区域内的玩家造成伤害
         {
             if (GridManager.GetOccupant(pos) is Player player)
@@ -483,6 +497,10 @@ public class Boss : Enemy
         {
             if (GridManager.GetOccupant(checkPos) is Firewall)
             {
+                if (messageManager != null)
+                {
+                    messageManager.ShowMessage("击破所有防火墙以解除Boss的无敌状态！", 2f);
+                }
                 return;
             }
         }
@@ -536,6 +554,17 @@ public class Boss : Enemy
             TileBase current = tilemap.GetTile(cellPos);
             originalTiles[pos] = current;           // 保存原始瓦片
             tilemap.SetTile(cellPos, Tile);     // 改为安全瓦片
+        }
+    }
+
+    private void SetAnimatedTiles(List<Vector2Int> positions,AnimatedTile tile)
+    {
+        originalTiles.Clear();
+        foreach (Vector2Int pos in positions)
+        {
+            Vector3Int cellPos = new Vector3Int(pos.x, pos.y, 0);
+            originalTiles[pos] = tilemap.GetTile(cellPos); // 保存原始瓦片
+            tilemap.SetTile(cellPos, ultimateAnimatedTile); // 设置为终极技能动画瓦片
         }
     }
 
@@ -694,6 +723,7 @@ public class Boss : Enemy
                     enemy.Die();
                 }
             }
+            RestoreOriginalTiles(); // 恢复之前的瓦片
             Die();
             Vector2Int? spawnPos = new Vector2Int(0, 0);
             GameObject newMinionObj = Instantiate(portalPrefab);
