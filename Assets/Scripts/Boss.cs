@@ -443,7 +443,7 @@ public class Boss : Enemy
         SetAnimatedTiles(dangerPositions, ultimateAnimatedTile); // 将危险区域标记为 DangerTile
         foreach(Vector2Int pos in dangerPositions)       // 对危险区域内的玩家造成伤害
         {
-            if (GridManager.GetOccupant(pos) is Player player)
+            if (GridManager.GetOccupant(pos) is Player player && player.invulnerable == false)
             {
                 player.Die(); // 直接死亡，或根据需要改为减少生命值等
             }

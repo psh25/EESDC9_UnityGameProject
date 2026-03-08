@@ -11,18 +11,19 @@ public class Player : Entity
     public bool isProtected = false;
 
     [SerializeField] private GameObject healthPrefab;
-    public int health = 3;
+    [SerializeField] private int health = 3;
+    [SerializeField] public bool invulnerable = false;
     private readonly List<GameObject> activeHealthVisuals = new List<GameObject>();
 
-    [Header("Health UI Settings")]
+   
     // 视口坐标锚点：左下(0,0) 右上(1,1)，默认贴近左上角。
-    [SerializeField] private Vector2 healthAnchorViewport = new Vector2(0.06f, 0.90f);
+    private Vector2 healthAnchorViewport = new Vector2(0.06f, 0.90f);
     // 相邻血量图标在视口坐标中的水平间距。
-    [SerializeField] private float healthSpacingViewport = 0.04f;
+    private float healthSpacingViewport = 0.04f;
     // 图标最终放置的世界坐标 Z 平面。
-    [SerializeField] private float healthPlaneZ = 0f;
+    private float healthPlaneZ = 0f;
     // 正交相机参考尺寸，用于保持图标相对屏幕大小稳定。
-    [SerializeField] private float healthReferenceOrthoSize = 5f;
+    private float healthReferenceOrthoSize = 5f;
 
     private Camera healthDisplayCamera;
     private Vector3 healthBaseScale = Vector3.one;
@@ -192,11 +193,21 @@ public class Player : Entity
             Die();
         }
 
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+            invulnerable = !invulnerable;
+            animator.SetBool("isInvulnerable", invulnerable);
+        }
+
         return false;
     }
 
     override public void Onhit(Vector2Int fromDirection)
     {
+        if (invulnerable || currentState == PlayerState.Dead)
+        {
+            return;
+        }
         if (isProtected)
         {
             // Todo:展示护盾碎裂的动画或特效
@@ -205,7 +216,7 @@ public class Player : Entity
         }
         health -= 1;
         DisplayHealth();
-        if(health == 0)
+        if(health <= 0)
         {
             Die();
         }
