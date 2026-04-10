@@ -24,6 +24,32 @@ public class PauseManager : MonoBehaviour
     private bool isPaused = false;
     private bool isSceneLoaded = false; // 标记暂停场景是否已加载
 
+    private void PauseBeatAndAudio()
+    {
+        if (BeatManager.Instance != null)
+        {
+            BeatManager.Instance.PauseSong();
+        }
+
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PauseBgm();
+        }
+    }
+
+    private void ResumeBeatAndAudio()
+    {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.ResumeBgm();
+        }
+
+        if (BeatManager.Instance != null)
+        {
+            BeatManager.Instance.ResumeSong();
+        }
+    }
+
     void Update()
     {
         // 按下暂停键时切换暂停状态
@@ -57,6 +83,7 @@ public class PauseManager : MonoBehaviour
         // 暂停游戏时间
         Time.timeScale = 0f;
         isPaused = true;
+        PauseBeatAndAudio();
 
         // 显示鼠标光标（可根据需要）
         Cursor.lockState = CursorLockMode.None;
@@ -75,6 +102,7 @@ public class PauseManager : MonoBehaviour
         // 恢复游戏时间
         Time.timeScale = 1f;
         isPaused = false;
+        ResumeBeatAndAudio();
 
     }
 
@@ -83,6 +111,8 @@ public class PauseManager : MonoBehaviour
     {
         // 先恢复时间，再切换场景
         Time.timeScale = 1f;
+        isPaused = false;
+        ResumeBeatAndAudio();
         // 卸载暂停场景（如果还加载着）
         if (isSceneLoaded)
             SceneManager.UnloadSceneAsync(pauseSceneName);

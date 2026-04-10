@@ -24,6 +24,10 @@ public class BeatManager : MonoBehaviour
     private int lastProcessedBeat = -1;
     // 当前是否正在进行节拍驱动
     private bool songRunning = false;
+    // 暂停时缓存已播放时长（秒），用于恢复后继续原节拍位置
+    private float pausedElapsedSeconds = 0f;
+    // 当前是否处于暂停状态
+    private bool isSongPaused = false;
 
     // 对外拍号（从 1 开始）
     public static int BeatIndex { get; private set; } = 0;
@@ -76,12 +80,44 @@ public class BeatManager : MonoBehaviour
         BeatIndex = 0;
         gametime = 0f;
         songRunning = true;
+        isSongPaused = false;
+        pausedElapsedSeconds = 0f;
+    }
+
+    // 暂停节拍推进，保留当前拍点进度用于恢复
+    public void PauseSong()
+    {
+        if (!songRunning)
+        {
+            return;
+        }
+
+        double elapsedSeconds = AudioSettings.dspTime - songStartDspTime - firstBeatOffsetSeconds;
+        pausedElapsedSeconds = Mathf.Max(0f, (float)elapsedSeconds);
+        gametime = pausedElapsedSeconds;
+        songRunning = false;
+        isSongPaused = true;
+    }
+
+    // 从暂停点恢复节拍推进，保持拍点连续
+    public void ResumeSong()
+    {
+        if (!isSongPaused)
+        {
+            return;
+        }
+
+        songStartDspTime = AudioSettings.dspTime - pausedElapsedSeconds - firstBeatOffsetSeconds;
+        songRunning = true;
+        isSongPaused = false;
     }
 
     // 停止节拍并重置状态
     public void StopSong()
     {
         songRunning = false;
+        isSongPaused = false;
+        pausedElapsedSeconds = 0f;
         lastProcessedBeat = -1;
         BeatIndex = 0;
         gametime = 0f;

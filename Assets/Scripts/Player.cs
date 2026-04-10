@@ -190,7 +190,9 @@ public class Player : Entity
 
         if (Input.GetKeyDown(KeyCode.R))
         {
-            Die();
+            string currentSceneName = SceneManager.GetActiveScene().name;
+            SceneManager.LoadSceneAsync(currentSceneName, LoadSceneMode.Single);
+            return false;
         }
 
         if (Input.GetKeyDown(KeyCode.I))

@@ -64,6 +64,12 @@ public class AudioManager : MonoBehaviour
     // 场景切换后决定播放或停止战斗 BGM
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        // 叠加加载（如 PauseScene）不应打断当前关卡的音乐与节拍。
+        if (mode == LoadSceneMode.Additive)
+        {
+            return;
+        }
+
         string levelName = scene.name.Split('.')[0];
         if (battleLevelNames.Contains(levelName))
         {
@@ -114,6 +120,24 @@ public class AudioManager : MonoBehaviour
         if (BeatManager.Instance != null)
         {
             BeatManager.Instance.StopSong();
+        }
+    }
+
+    // 暂停当前 BGM（不重置播放进度）
+    public void PauseBgm()
+    {
+        if (bgmSource != null && bgmSource.isPlaying)
+        {
+            bgmSource.Pause();
+        }
+    }
+
+    // 恢复暂停前的 BGM 播放
+    public void ResumeBgm()
+    {
+        if (bgmSource != null)
+        {
+            bgmSource.UnPause();
         }
     }
 }
