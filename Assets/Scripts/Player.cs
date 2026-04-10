@@ -195,6 +195,12 @@ public class Player : Entity
             return false;
         }
 
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            Die();
+            return false;
+        }
+
         if (Input.GetKeyDown(KeyCode.I))
         {
             invulnerable = !invulnerable;

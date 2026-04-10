@@ -355,7 +355,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\t\t\u5B8C\u6210\u6240\u6709\u5173\u5361\u4EE5\u89E3\u9501Boss\u6218\u6597\uFF01"
+  m_text: "\t\t\u5728\u5173\u5361\u5185\u6309L\u5373\u53EF\u56DE\u5230\u5927\u5385\n\t\t\u5B8C\u6210\u6240\u6709\u5173\u5361\u4EE5\u89E3\u9501Boss\u6218\u6597\uFF01"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 2419231aa6f31a74d9e83a050369a7b1, type: 2}
   m_sharedMaterial: {fileID: 299845993205654634, guid: 2419231aa6f31a74d9e83a050369a7b1, type: 2}
